@@ -3,5 +3,6 @@
   "productName": "SignalPilot",
   "productDomain": "signalpilot.orun.new",
   "workersDevSubdomain": "orundemo",
-  "orunWorkspace": "org_0302a165c98c4d529e288edf2d9428c4"
+  "orunWorkspace": "org_0302a165c98c4d529e288edf2d9428c4",
+  "orunWorkspaceSlug": "signalpilot"
 }
