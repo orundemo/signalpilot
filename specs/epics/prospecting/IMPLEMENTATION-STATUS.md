@@ -235,6 +235,22 @@ reason, rather than by silently editing the design.
   illustration.
 - **`08-docs` was not re-run and `ai/context/*.md` was not regenerated.** Both
   need a deployed environment; see the SP8 PR.
+- **The `catalog.entities` block in `intent.yaml` was reverted.** It was
+  written, and `kiox -- orun validate --intent intent.yaml` accepted it — but
+  `orun plan --changed` in CI then failed for the whole repo with:
+
+  ```
+  ✕ failed to compute changed components: objcatalog: catalog "catalogs/current": objectstore: object not found
+  ```
+
+  Reproduced on a re-run, so not transient. A top-level `catalog:` entity
+  appears to need a resolved catalog object in the workspace object store that
+  this repo does not currently have, and creating one is an orun-cloud
+  operation rather than a repo change. Shipping it would have red-lined every
+  subsequent PR, so it is deferred with the exact error rather than forced. The
+  three product docs it pointed at (`docs/{overview,architecture,runbook}.md`)
+  ship regardless — they are the substance; the catalog entry is the index
+  entry.
 
 ## What remains
 
@@ -249,3 +265,4 @@ does not hold. Nothing here is blocked on code.
 | Live signed webhook delivery + replay check | SP7 | a registered endpoint |
 | Seeded demo tenant | SP8 | `signalpilot demo seed` run against `stage` |
 | `ai/context/deployment.md` + `operations.md` regeneration | SP8 | an `08-docs` run against verified live state |
+| `catalog.entities` entry in `intent.yaml` | SP8 | a `catalogs/current` object in the workspace store (see the SP8 deviation above) |
