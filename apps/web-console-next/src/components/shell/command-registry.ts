@@ -1,7 +1,8 @@
 /**
  * Pure command registry for the Cmd-K palette (Task 0127 / U11).
  *
- * Kept dependency-free (no React, no `next/*`, no DOM, no icon imports) so the
+ * Kept dependency-free (no React, no `next/*`, no DOM, no icon *values* — the
+ * `ShellIconName` import is type-only and erased) so the
  * command-set composition can be unit-tested in isolation. The React wiring
  * (icon rendering, navigation, action handlers, registration context) lives in
  * `command-palette.tsx`, which maps each descriptor's `kind` onto a concrete
@@ -13,6 +14,8 @@
  * merged and ordered by `composeCommands(base, extra)`. New product areas add
  * commands without editing this file.
  */
+
+import type { ShellIconName } from "./icons";
 
 /** Stable group ordering for the palette. */
 export const COMMAND_GROUPS = ["Navigation", "Create", "Target", "Session"] as const;
@@ -31,8 +34,8 @@ export type CommandDescriptor =
       group: CommandGroup;
       kind: "navigate";
       to: string;
-      /** lucide icon name (resolved in the renderer); optional. */
-      icon?: string;
+      /** Icon name, resolved in the renderer against `SHELL_ICONS`; optional. */
+      icon?: ShellIconName;
       /** extra fuzzy-search terms beyond the label. */
       keywords?: string[];
       shortcut?: string;
@@ -43,7 +46,7 @@ export type CommandDescriptor =
       group: CommandGroup;
       kind: "action";
       actionId: "logout";
-      icon?: string;
+      icon?: ShellIconName;
       keywords?: string[];
       shortcut?: string;
     }
@@ -53,7 +56,7 @@ export type CommandDescriptor =
       group: CommandGroup;
       kind: "target";
       targetName: string;
-      icon?: string;
+      icon?: ShellIconName;
       keywords?: string[];
       shortcut?: string;
     };
@@ -257,7 +260,7 @@ function navItem(
   id: string,
   label: string,
   to: string,
-  icon: string,
+  icon: ShellIconName,
   keywords: string[],
   group: CommandGroup = "Navigation",
 ): CommandDescriptor {

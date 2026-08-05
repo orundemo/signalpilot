@@ -3,63 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import {
-  Building2,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  FolderKanban,
-  Boxes,
-  KeyRound,
-  Settings,
-  SlidersHorizontal,
-  ScrollText,
-  Receipt,
-  Users,
-  Mail,
-  Webhook,
-  ShieldCheck,
-  Bell,
-  Gauge,
-  User2,
-  Plug,
-  GitBranch,
-  type LucideIcon,
-  Search,
-  Target,
-  KanbanSquare,
-  Sparkles
-} from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { orgHomePath } from "@/lib/org-home";
+import { SHELL_ICONS } from "./icons";
 import { buildNavSections, isLinkActive } from "./nav-items";
 import { buildSettingsNav, flattenSettingsNav, isSettingsLinkActive } from "./settings-nav";
 import { SidebarAccount } from "./sidebar-account";
 import { SidebarOrgSwitcher } from "./sidebar-org-switcher";
 import { SidebarFind } from "./sidebar-find";
-
-const ICONS: Record<string, LucideIcon> = {
-  Building2,
-  FolderKanban,
-  Boxes,
-  KeyRound,
-  Settings,
-  SlidersHorizontal,
-  ScrollText,
-  Receipt,
-  Users,
-  Mail,
-  Webhook,
-  ShieldCheck,
-  Bell,
-  Gauge,
-  User2,
-  Plug,
-  GitBranch,
-  Search,
-  Target,
-  KanbanSquare,
-  Sparkles,
-};
 
 /**
  * Shared nav body (sections + links), rendered by both the desktop sidebar and
@@ -136,7 +88,7 @@ function ProductNav({
       {sections.map((section) => (
         <Section key={section.id} label={section.label} mobile={mobile}>
           {section.links.map((link) => {
-            const Icon = ICONS[link.icon] ?? Settings;
+            const Icon = SHELL_ICONS[link.icon];
             return (
               <SidebarLink
                 key={link.href}
@@ -178,7 +130,7 @@ function SettingsNavContent({
       {/* Back button on the left, "Settings" centered (Vercel pattern). */}
       <div className={cn("relative mb-2 flex items-center justify-center", mobile ? "h-11" : "h-8")}>
         <Link
-          href={`/orgs/${orgSlug}/projects`}
+          href={orgHomePath(orgSlug)}
           {...(onNavigate ? { onClick: onNavigate } : {})}
           aria-label="Back to app"
           className={cn(

@@ -12,6 +12,7 @@
  */
 
 import { SOLO_MODE } from "../../lib/solo-mode";
+import type { ShellIconName } from "./icons";
 
 // Settings sub-paths suppressed under the M0/Solo profile (also 404'd at the API
 // edge): collaboration (members, invitations), credentials (api-keys), and the
@@ -29,8 +30,8 @@ const SOLO_SUPPRESSED_PATHS = [
 export interface SettingsNavLink {
   href: string;
   label: string;
-  /** lucide icon name, resolved by the renderer. */
-  icon: string;
+  /** Icon name, resolved by the renderer against the shared `SHELL_ICONS` map. */
+  icon: ShellIconName;
   /** short helper copy shown under the label in the rail. */
   description: string;
   /**

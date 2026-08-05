@@ -18,6 +18,7 @@
  */
 
 import { PUBLIC_LANDING_PATH, STORAGE_PREFIX } from "./app-config";
+import { orgHomePath } from "./org-home";
 import { pickAccountBillingOrg } from "@/components/billing/account-org";
 
 const LAST_ORG_KEY = `${STORAGE_PREFIX}.last-org`;
@@ -59,9 +60,7 @@ export function clearLastOrgSlug(): void {
  */
 export function defaultOrgDestination(lastOrgSlug: string | null): string {
   if (!lastOrgSlug) return "/onboarding";
-  // Both profiles land on the product's board. Projects is platform plumbing
-  // (and suppressed at the edge under Solo), so it is not anyone's dashboard.
-  return `/orgs/${lastOrgSlug}/prospects`;
+  return orgHomePath(lastOrgSlug);
 }
 
 /**
