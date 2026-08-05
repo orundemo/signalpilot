@@ -296,6 +296,38 @@ link to any of them. Nothing asserted that the shell could reach the surfaces it
 had just built. The test now pinning the exact Solo link list is the assertion
 that was missing.
 
+### The same shape, three more times
+
+Working out the blast radius of the nav defect turned up three more instances
+of it — a fact written in several places, one of which was wrong, with nothing
+able to tell.
+
+**The org's home path was spelled inline six times.** The org list, both org
+switchers, the post-create redirect, and the Settings "Back to app" button each
+wrote `/orgs/${slug}/projects` themselves. The nav fix moved four *other* call
+sites; these six kept pointing at a page the edge 404s — including the back
+button out of Settings, which was the only surface Solo previously showed at
+all. They go through `orgHomePath()` now.
+
+**The icon vocabulary was duplicated per renderer.** The sidebar and the command
+palette each kept their own name → glyph map, and the models typed `icon` as
+`string`. The nav fix registered four product surfaces in the palette using
+names only the sidebar's map carried, so the palette rendered them with no
+glyph — and nothing failed. There is one `SHELL_ICONS` map now, with
+`ShellIconName` derived from its keys, so an unresolvable name is a compile
+error where it is written.
+
+**The command palette never learned the Solo profile existed.** The sidebar
+gated the suppressed surfaces and the settings rail gated them; ⌘K listed
+thirteen entries that were all 404s at the edge. It filters by destination now
+rather than per command, so a command added later is covered by where it points.
+
+The common thread is worth naming, because it is the same one the nav defect
+had: **when two places have to agree and nothing makes them, they will
+disagree, and the disagreement will be invisible.** Each fix here is the same
+move — give the fact one owner, and where possible make the compiler enforce
+the agreement rather than a reviewer.
+
 ### Turbo reports stale passes for every `tests/*` package
 
 Found while fixing the above: `turbo run test --filter=@saas/web-console-next-tests`
