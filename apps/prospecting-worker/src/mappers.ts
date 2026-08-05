@@ -17,6 +17,14 @@ import type { DiscoveryRun, Prospect, ProspectWithScore, Score, Signal } from "@
 import { discoveryPublicId, orgPublicId, prospectPublicId, scorePublicId, signalPublicId, userPublicId } from "./ids.js";
 
 export function toPublicScore(score: Score): PublicScore {
+  // `contributions` is stored with the internal signal UUID; the public shape
+  // must carry the same public id the signals endpoint returns, or the console
+  // gets two different identifiers for one observation and cannot join them.
+  const contributions = (score.contributions as ScoreContribution[]).map((contribution) => ({
+    ...contribution,
+    signalId: signalPublicId(contribution.signalId),
+  }));
+
   return {
     id: scorePublicId(score.id),
     orgId: orgPublicId(score.orgId),
@@ -25,7 +33,7 @@ export function toPublicScore(score: Score): PublicScore {
     band: score.band as ScoreBand,
     rulesetVersion: score.rulesetVersion,
     profileVersion: score.profileVersion,
-    contributions: score.contributions as ScoreContribution[],
+    contributions,
     signalIds: score.signalIds.map(signalPublicId),
     computedAt: score.computedAt.toISOString(),
   };

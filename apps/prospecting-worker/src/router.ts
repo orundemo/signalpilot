@@ -10,6 +10,10 @@ import { handleCreateProspect } from "./handlers/create-prospect.js";
 import { handleUpdateProspect } from "./handlers/update-prospect.js";
 import { handleArchiveProspect } from "./handlers/archive-prospect.js";
 import { handleListSignals } from "./handlers/list-signals.js";
+import { handleRescoreProspect } from "./handlers/rescore-prospect.js";
+import { handleListScores } from "./handlers/list-scores.js";
+import { handleBulkRescore } from "./handlers/bulk-rescore.js";
+import { handleGetScoringProfile, handlePutScoringProfile } from "./handlers/scoring-profile.js";
 import { errorResponse, methodNotAllowed, notFound } from "./http.js";
 import { generateRequestId, parseDiscoveryPublicId, parseOrgPublicId, parseProspectPublicId } from "./ids.js";
 
@@ -56,6 +60,10 @@ const PROSPECTS_RE = new RegExp(`^${ORG}\\/prospects$`);
 const PROSPECT_ID_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)$`);
 const PROSPECT_ARCHIVE_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/archive$`);
 const PROSPECT_SIGNALS_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/signals$`);
+const PROSPECT_RESCORE_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/rescore$`);
+const PROSPECT_SCORES_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/scores$`);
+const BULK_RESCORE_RE = new RegExp(`^${ORG}\\/prospects\\/rescore$`);
+const SCORING_PROFILE_RE = new RegExp(`^${ORG}\\/scoring-profile$`);
 
 export interface RequestContext {
   waitUntil(promise: Promise<unknown>): void;
@@ -98,6 +106,19 @@ export async function route(request: Request, env: Env, ctx?: RequestContext): P
       return handleGetDiscovery(env, requestId, actor, orgId, runId);
     }
 
+    if (SCORING_PROFILE_RE.test(path)) {
+      if (request.method === "GET") return handleGetScoringProfile(env, requestId, actor, orgId);
+      if (request.method === "PUT") return handlePutScoringProfile(request, env, requestId, actor, orgId);
+      return methodNotAllowed(requestId);
+    }
+
+    // The bulk action must be matched before the `/prospects/:id` shape, or
+    // `rescore` reads as a prospect id and answers 405.
+    if (BULK_RESCORE_RE.test(path)) {
+      if (request.method !== "POST") return methodNotAllowed(requestId);
+      return handleBulkRescore(env, requestId, actor, orgId);
+    }
+
     if (PROSPECTS_RE.test(path)) {
       if (request.method === "GET") return handleListProspects(request, env, requestId, actor, orgId);
       if (request.method === "POST") return handleCreateProspect(request, env, requestId, actor, orgId);
@@ -118,6 +139,22 @@ export async function route(request: Request, env: Env, ctx?: RequestContext): P
       if (!prospectId) return errorResponse("not_found", "Not found", 404, requestId);
       if (request.method !== "GET") return methodNotAllowed(requestId);
       return handleListSignals(request, env, requestId, actor, orgId, prospectId);
+    }
+
+    const rescoreMatch = path.match(PROSPECT_RESCORE_RE);
+    if (rescoreMatch) {
+      const prospectId = parseProspectPublicId(rescoreMatch[2]!);
+      if (!prospectId) return errorResponse("not_found", "Not found", 404, requestId);
+      if (request.method !== "POST") return methodNotAllowed(requestId);
+      return handleRescoreProspect(env, requestId, actor, orgId, prospectId);
+    }
+
+    const scoresMatch = path.match(PROSPECT_SCORES_RE);
+    if (scoresMatch) {
+      const prospectId = parseProspectPublicId(scoresMatch[2]!);
+      if (!prospectId) return errorResponse("not_found", "Not found", 404, requestId);
+      if (request.method !== "GET") return methodNotAllowed(requestId);
+      return handleListScores(request, env, requestId, actor, orgId, prospectId);
     }
 
     const prospectMatch = path.match(PROSPECT_ID_RE);

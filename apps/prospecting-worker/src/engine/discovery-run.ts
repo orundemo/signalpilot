@@ -9,6 +9,7 @@ import type { ActorContext } from "../router.js";
 import type { DiscoveryAdapter } from "../adapters/index.js";
 import { resolveAdapter } from "../adapters/index.js";
 import { dedupeKey } from "./dedupe.js";
+import { scoreAndStore } from "../scoring.js";
 import { emitProspectingEvent } from "../events.js";
 import { recordUsage } from "../metering-client.js";
 import { discoveryPublicId, orgPublicId, prospectPublicId } from "../ids.js";
@@ -159,6 +160,21 @@ export async function runDiscovery(input: RunDiscoveryInput): Promise<RunCounter
         body: null,
         metadata: { discoveryId: discoveryPublicId(runId), adapter: adapter.id },
         createdAt: now,
+      });
+
+      // Score at the end of each candidate rather than in a second pass: the
+      // signals are already written, and a run that dies later still leaves
+      // every prospect it produced with a score the board can render.
+      await scoreAndStore({
+        repo,
+        eventsRepo,
+        orgId,
+        prospectId: asUuid(prospect.id),
+        prospectName: prospect.name,
+        actor,
+        requestId,
+        now,
+        trigger: "discovered",
       });
     }
   } catch (err: unknown) {
