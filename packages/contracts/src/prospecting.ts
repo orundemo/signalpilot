@@ -510,6 +510,108 @@ export const PROSPECTING_EVENT_TYPES = [
 
 export type ProspectingEventType = (typeof PROSPECTING_EVENT_TYPES)[number];
 
+/**
+ * The published schema for each domain event.
+ *
+ * A webhook consumer integrates against this, not against whatever a payload
+ * happened to contain the day they looked. Every field listed here is a
+ * non-secret public id or a scalar the console already renders: no signal
+ * features, no generated prose, no contact data crosses a webhook boundary.
+ *
+ * Adding a field is additive and safe. Removing or retyping one is a breaking
+ * change to every registered endpoint, so it needs a new event type rather
+ * than an edit here.
+ */
+export const PROSPECTING_EVENT_SCHEMAS: Readonly<
+  Record<ProspectingEventType, { description: string; fields: Readonly<Record<string, string>> }>
+> = {
+  "prospecting.prospect.created": {
+    description: "A business was added to the org, by discovery or by hand.",
+    fields: {
+      orgId: "string",
+      prospectId: "string",
+      name: "string",
+      domain: "string | null",
+      source: "string",
+      discoveryId: "string | undefined",
+    },
+  },
+  "prospecting.prospect.enriched": {
+    description: "New observations were recorded against an existing prospect.",
+    fields: { orgId: "string", prospectId: "string", signalsRecorded: "number" },
+  },
+  "prospecting.prospect.scored": {
+    description:
+      "A score was computed. Carries the previous value, so a consumer can act on the change without keeping its own copy of the board.",
+    fields: {
+      orgId: "string",
+      prospectId: "string",
+      scoreId: "string",
+      score: "number",
+      band: "'hot' | 'warm' | 'cold'",
+      previousScore: "number | null",
+      previousBand: "string | null",
+      rulesetVersion: "number",
+      profileVersion: "number",
+      trigger: "'discovered' | 'rescored'",
+    },
+  },
+  "prospecting.prospect.archived": {
+    description: "A prospect was archived. Its signals, scores, and timeline are retained.",
+    fields: { orgId: "string", prospectId: "string", name: "string" },
+  },
+  "prospecting.discovery.completed": {
+    description:
+      "A discovery run reached a terminal state. A failed run still carries the counters it achieved — the prospects it produced are real.",
+    fields: {
+      orgId: "string",
+      discoveryId: "string",
+      adapter: "string",
+      status: "'completed' | 'failed'",
+      errorCode: "string | null",
+      candidatesFound: "number",
+      prospectsCreated: "number",
+      prospectsUpdated: "number",
+      signalsRecorded: "number",
+    },
+  },
+  "prospecting.insight.generated": {
+    description:
+      "A draft passed the guardrail and was stored. The text itself is NOT in the payload — fetch it through the API if you need it.",
+    fields: {
+      orgId: "string",
+      prospectId: "string",
+      insightId: "string",
+      kind: "'prospect_summary' | 'outreach_email'",
+      model: "string",
+      promptVersion: "number",
+      guardrailVerdict: "'pass' | 'revised'",
+    },
+  },
+  "prospecting.pipeline.stage_changed": {
+    description: "A prospect entered the pipeline or moved between stages.",
+    fields: {
+      orgId: "string",
+      prospectId: "string",
+      entryId: "string",
+      fromStage: "string | null",
+      toStage: "string",
+    },
+  },
+  "prospecting.quota.exhausted": {
+    description:
+      "A metered operation was refused because the plan allowance is spent. Carries everything an upgrade prompt needs.",
+    fields: {
+      orgId: "string",
+      meter: "string",
+      entitlement: "string",
+      limit: "number | null",
+      used: "number | null",
+      resetAt: "string | null",
+    },
+  },
+};
+
 // ---------------------------------------------------------------------------
 // Validators
 // ---------------------------------------------------------------------------

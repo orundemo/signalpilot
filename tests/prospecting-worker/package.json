@@ -35,7 +35,8 @@
       "^@saas/db$": "<rootDir>/../../packages/db/src/index.ts",
       "^@saas/db/manifest$": "<rootDir>/../../packages/db/src/manifest.ts",
       "^@saas/db/types$": "<rootDir>/../../packages/db/src/types.ts",
-      "^@saas/db/(.*)$": "<rootDir>/../../packages/db/src/$1/index.ts"
+      "^@saas/db/(.*)$": "<rootDir>/../../packages/db/src/$1/index.ts",
+      "^@billing-worker/(.*)$": "<rootDir>/../../apps/billing-worker/src/$1.ts"
     },
     "transform": {
       "^.+\\.ts$": [

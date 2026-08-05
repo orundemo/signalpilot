@@ -27,6 +27,7 @@ import { billingPeriod, checkBillingEntitlement, decideQuota } from "../billing-
 import { errorResponse, quotaExhausted, successResponse, validationError } from "../http.js";
 import { orgPublicId } from "../ids.js";
 import { toPublicDiscoveryRun } from "../mappers.js";
+import { emitProspectingEvent } from "../events.js";
 import { runDiscovery } from "../engine/discovery-run.js";
 
 interface ParsedQuery {
@@ -195,6 +196,28 @@ export async function handleCreateDiscovery(
       return errorResponse("internal_error", "Service unavailable", 503, requestId);
     }
     if (gate.kind === "deny") {
+      // The event lands in the audit trail and fans out to webhooks, so an
+      // org that keeps hitting its ceiling is visible without anyone
+      // reading a log.
+      const eventsExecutor = deps?.eventsRepo ? null : createSqlExecutor(env.PLATFORM_DB!);
+      try {
+        await emitProspectingEvent(deps?.eventsRepo ?? createEventsRepository(eventsExecutor!), {
+          type: "prospecting.quota.exhausted",
+          orgId,
+          actor,
+          subjectKind: "organization",
+          subjectId: orgId,
+          subjectName: null,
+          requestId,
+          occurredAt: now,
+          payload: { ...gate.details, orgId: orgPublicId(orgId) },
+          description: "Discovery blocked — monthly allowance spent",
+        });
+      } catch {
+        // A failed audit write must not turn a clean 402 into a 503.
+      } finally {
+        if (eventsExecutor) await eventsExecutor.dispose();
+      }
       return quotaExhausted(requestId, gate.message, gate.details);
     }
 
