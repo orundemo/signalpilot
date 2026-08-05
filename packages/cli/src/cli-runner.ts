@@ -51,6 +51,7 @@ import {
   prospectsRescoreCommand,
   prospectsSignalsCommand,
 } from "./commands/prospecting.js";
+import { demoSeedCommand } from "./commands/prospecting-seed.js";
 import {
   usageSummaryCommand,
   billingSummaryCommand,
@@ -229,6 +230,8 @@ function buildRouter(opts: RunOptions): Router {
   r.register(["pipeline", "stages"], "List the pipeline stages", pipelineStagesCommand);
   r.register(["pipeline", "add"], "Add a prospect to the pipeline", pipelineAddCommand);
   r.register(["pipeline", "move"], "Move, assign, or value a pipeline entry", pipelineMoveCommand);
+
+  r.register(["demo", "seed"], "Seed a demo tenant through the product's own API", demoSeedCommand);
   return r;
 }
 

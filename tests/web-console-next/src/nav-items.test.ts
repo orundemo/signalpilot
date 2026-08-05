@@ -85,6 +85,7 @@ describe("buildNavSections under the Solo (M0) profile", () => {
       "/orgs/acme/prospects",
       "/orgs/acme/pipeline",
       "/orgs/acme/insights",
+      "/orgs/acme/isolation-proof",
       "/orgs/acme/projects",
       "/orgs/acme/usage",
       "/orgs/acme/settings",
