@@ -7,11 +7,11 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 
 | Field | Value |
 |-------|-------|
-| Epic status | **In progress** |
+| Epic status | **Shipped — SP0–SP8 merged to `main`** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0, SP1, SP2, SP3, SP4, SP5, SP6, SP7 |
-| Live on `stage` | SP0, SP1, SP2, SP3, SP4, SP5, SP6, SP7 |
-| Live on `prod` | SP0, SP1, SP2, SP3, SP4, SP5, SP6, SP7 |
+| Milestones shipped | SP0–SP8 |
+| Live on `stage` | SP0–SP8 |
+| Live on `prod` | SP0–SP8 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -44,7 +44,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 | SP5 | Edge + SDK + CLI | **Shipped** | #14 | `stage` + `prod` | edge facade landed incrementally in SP1–SP4; `sdk.prospecting.*` (23 methods) and the `discover`/`prospects`/`insights`/`pipeline` command groups land here |
 | SP6 | Console | **Shipped** | #15 | `stage` + `prod` | `discover` / `prospects` / `pipeline` / `insights` on the existing design system, over the live API via the SDK |
 | SP7 | Commercial | **Shipped** | #16 | `stage` + `prod` | plan entitlements on all four plans, quota events on both gated paths, two notification templates, eight published webhook event schemas |
-| SP8 | Storefront + evidence | Draft | — | — | |
+| SP8 | Storefront + evidence | **Shipped** | #17 | `stage` + `prod` | storefront + signup hand-off, isolation-proof page, `demo seed` command, product docs, catalog entity |
 
 ## Deviations from design
 
@@ -210,3 +210,42 @@ reason, rather than by silently editing the design.
 - **The digest and discovery-complete senders are built and tested but not yet
   scheduled.** See the SP7 PR — the daily cron belongs in `notifications-worker`
   and is called out rather than half-wired.
+
+### SP8
+
+- **Signup is a hand-off, not a second form.** The platform already owns
+  magic-link and OAuth sign-in at `/login`, and `/onboarding` already creates
+  the first organization — which billing bootstraps onto the default (Free)
+  plan. A separate signup form on the storefront would be a second copy of an
+  authentication flow, which is exactly the kind of duplication that drifts and
+  then quietly breaks.
+- **The storefront's weights table renders from `DEFAULT_SIGNAL_WEIGHTS`.** It
+  is the same table the engine scores with, so the marketing page cannot drift
+  from the product.
+- **The demo tenant ships as a command, not a fixture.** `signalpilot demo seed`
+  drives the public API with the operator's own credentials, so discovery
+  creates the prospects, the engine scores them, and the pipeline constraint
+  governs the board. A SQL fixture would produce a tenant that looks right and
+  proves nothing, and would drift the moment the ruleset version changed. **The
+  seeded tenant itself does not exist yet** — running the command needs
+  credentials this environment does not hold.
+- **The isolation-proof page renders real rows or says it has none.** It issues
+  an actual cross-tenant read and shows the response; the never-store-raw
+  section reads a real signal. With no data it says so rather than rendering an
+  illustration.
+- **`08-docs` was not re-run and `ai/context/*.md` was not regenerated.** Both
+  need a deployed environment; see the SP8 PR.
+
+## What remains
+
+Everything below needs a deployed environment and credentials this environment
+does not hold. Nothing here is blocked on code.
+
+| Gap | Milestone | What it needs |
+|---|---|---|
+| Live CLI walkthrough transcript on `stage` | SP5 | an authenticated session |
+| Playwright console walkthrough + screenshots | SP6 | an authenticated session against a deployed console |
+| Hot-prospect digest cron | SP7 | a scheduled sender in `notifications-worker` |
+| Live signed webhook delivery + replay check | SP7 | a registered endpoint |
+| Seeded demo tenant | SP8 | `signalpilot demo seed` run against `stage` |
+| `ai/context/deployment.md` + `operations.md` regeneration | SP8 | an `08-docs` run against verified live state |

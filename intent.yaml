@@ -148,3 +148,28 @@ repo:
     pages:
       - { path: ai/context/operations.md, role: runbook, title: Operating contract }
       - { path: ai/context/deployment.md, role: reference, title: Live deployment manifest }
+
+# Product-level catalog entity. The repo entry above describes the workspace;
+# this describes what the workspace is FOR. Pinned to the commit by `orun plan`
+# and rendered in the workspace Docs library alongside the component entries.
+catalog:
+  entities:
+    - name: prospecting
+      displayName: SignalPilot Prospecting
+      kind: product
+      description: >-
+        B2B prospecting: discovers businesses, derives checkable weaknesses from
+        their web presence, scores the opportunity with a per-rule breakdown,
+        drafts guardrailed outreach, and moves the result through a pipeline.
+      owner: platform
+      domain: product
+      components:
+        - prospecting-worker
+        - prospecting-worker-tests
+      docs:
+        overview: docs/overview.md
+        pages:
+          - { path: docs/architecture.md, role: architecture, title: Architecture }
+          - { path: docs/runbook.md, role: runbook, title: Runbook }
+          - { path: specs/epics/prospecting/design.md, role: reference, title: Technical design }
+          - { path: specs/epics/prospecting/IMPLEMENTATION-STATUS.md, role: reference, title: As-built record }
