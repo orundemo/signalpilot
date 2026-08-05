@@ -266,3 +266,56 @@ does not hold. Nothing here is blocked on code.
 | Seeded demo tenant | SP8 | `signalpilot demo seed` run against `stage` |
 | `ai/context/deployment.md` + `operations.md` regeneration | SP8 | an `08-docs` run against verified live state |
 | `catalog.entities` entry in `intent.yaml` | SP8 | a `catalogs/current` object in the workspace store (see the SP8 deviation above) |
+
+## Post-epic: the console shipped invisible
+
+The stage deployment carried every prospecting surface and rendered none of
+them. A Solo instance showed one sidebar entry — Settings — and landed the
+operator on `/projects`, which `api-edge` suppresses under Solo, so the first
+screen after sign-in was a `not_found`.
+
+The API was correct throughout: the prospecting routes are absent from
+`isSoloSuppressed`, so they were live the whole time. The defect was in
+`nav-items.ts`. The Solo branch was meant to drop platform *plumbing* — projects
+and usage/quota — but was applied to the entire link list, so it dropped the
+product with it. Four independent call sites then agreed on the wrong answer:
+the org root, the post-auth destination, the breadcrumb home, and the mobile
+bottom tabs all pointed at `/projects`.
+
+Two things are worth carrying forward from it.
+
+**A profile switch that hides a category must be applied to that category, not
+to the list that contains it.** SOLO_MODE suppresses collaboration, credentials,
+and developer plumbing. It has no opinion about the product. The nav now emits
+the product links unconditionally and gates only the two paths the edge actually
+404s, and a test asserts the four product surfaces appear under *both* profiles.
+
+**Milestone-local verification did not catch it.** SP6 tested the four pages'
+view models and every one of those tests passed — on code that never rendered a
+link to any of them. Nothing asserted that the shell could reach the surfaces it
+had just built. The test now pinning the exact Solo link list is the assertion
+that was missing.
+
+### Turbo reports stale passes for every `tests/*` package
+
+Found while fixing the above: `turbo run test --filter=@saas/web-console-next-tests`
+returned a clean pass against the broken console. The test packages reach into
+app source through jest `moduleNameMapper` (`@web-console-next/*` →
+`apps/web-console-next/src/*`) without declaring a dependency on the app, so
+turbo's hash for the test package does not cover the code under test. An
+app-source-only change is a cache hit.
+
+This is not specific to the console. Fourteen of the nineteen `tests/*` packages
+map into `apps/*/src` the same way and none declare the app as a dependency:
+
+```
+admin-worker, api-edge, billing-worker, config-worker, events-worker,
+integrations-worker, membership-worker, metering-worker, notifications-worker,
+policy-worker, projects-worker, prospecting-worker, web-console-next,
+webhooks-worker
+```
+
+CI is not currently affected — remote caching is off and each run starts from a
+cold container — so the exposure is local verification and any future move to a
+shared cache. Until it is fixed, run `pnpm test` inside the test package
+directly rather than through turbo when you have changed only app source.

@@ -6,9 +6,9 @@
  * and its horizontal pill bar (mobile). Icon resolution happens in the renderer.
  *
  * Settings is the dedicated "organization administration" surface: the primary
- * sidebar stays product-focused (Projects, Usage), while everything that
- * configures the org — identity, people, billing, and developer integrations —
- * lives here behind `/orgs/[slug]/settings/*`.
+ * sidebar stays product-focused (Discover, Prospects, Pipeline, Insights), while
+ * everything that configures the org — identity, people, billing, and developer
+ * integrations — lives here behind `/orgs/[slug]/settings/*`.
  */
 
 import { SOLO_MODE } from "../../lib/solo-mode";
