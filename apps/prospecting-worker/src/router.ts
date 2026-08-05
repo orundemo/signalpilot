@@ -16,8 +16,22 @@ import { handleBulkRescore } from "./handlers/bulk-rescore.js";
 import { handleGetScoringProfile, handlePutScoringProfile } from "./handlers/scoring-profile.js";
 import { handleGenerateInsight } from "./handlers/generate-insight.js";
 import { handleListInsights } from "./handlers/list-insights.js";
+import {
+  handleCreateEntry,
+  handleGetPipeline,
+  handleListStages,
+  handlePutStages,
+  handleUpdateEntry,
+} from "./handlers/pipeline.js";
+import { handleCreateActivity, handleListActivities } from "./handlers/activities.js";
 import { errorResponse, methodNotAllowed, notFound } from "./http.js";
-import { generateRequestId, parseDiscoveryPublicId, parseOrgPublicId, parseProspectPublicId } from "./ids.js";
+import {
+  generateRequestId,
+  parseDiscoveryPublicId,
+  parseOrgPublicId,
+  parsePipelineEntryPublicId,
+  parseProspectPublicId,
+} from "./ids.js";
 
 const REQUEST_ID_RE = /^[\w-]{1,128}$/;
 
@@ -67,6 +81,11 @@ const PROSPECT_SCORES_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/scores$`)
 const BULK_RESCORE_RE = new RegExp(`^${ORG}\\/prospects\\/rescore$`);
 const SCORING_PROFILE_RE = new RegExp(`^${ORG}\\/scoring-profile$`);
 const PROSPECT_INSIGHTS_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/insights$`);
+const PROSPECT_ACTIVITIES_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/activities$`);
+const PIPELINE_RE = new RegExp(`^${ORG}\\/pipeline$`);
+const PIPELINE_STAGES_RE = new RegExp(`^${ORG}\\/pipeline\\/stages$`);
+const PIPELINE_ENTRIES_RE = new RegExp(`^${ORG}\\/pipeline\\/entries$`);
+const PIPELINE_ENTRY_ID_RE = new RegExp(`^${ORG}\\/pipeline\\/entries\\/([^/]+)$`);
 
 export interface RequestContext {
   waitUntil(promise: Promise<unknown>): void;
@@ -107,6 +126,32 @@ export async function route(request: Request, env: Env, ctx?: RequestContext): P
       if (!runId) return errorResponse("not_found", "Not found", 404, requestId);
       if (request.method !== "GET") return methodNotAllowed(requestId);
       return handleGetDiscovery(env, requestId, actor, orgId, runId);
+    }
+
+    // Pipeline routes are matched before the /prospects family so `stages` and
+    // `entries` cannot be read as ids.
+    if (PIPELINE_STAGES_RE.test(path)) {
+      if (request.method === "GET") return handleListStages(env, requestId, actor, orgId);
+      if (request.method === "PUT") return handlePutStages(request, env, requestId, actor, orgId);
+      return methodNotAllowed(requestId);
+    }
+
+    if (PIPELINE_ENTRIES_RE.test(path)) {
+      if (request.method !== "POST") return methodNotAllowed(requestId);
+      return handleCreateEntry(request, env, requestId, actor, orgId);
+    }
+
+    const entryMatch = path.match(PIPELINE_ENTRY_ID_RE);
+    if (entryMatch) {
+      const entryId = parsePipelineEntryPublicId(entryMatch[2]!);
+      if (!entryId) return errorResponse("not_found", "Not found", 404, requestId);
+      if (request.method !== "PATCH") return methodNotAllowed(requestId);
+      return handleUpdateEntry(request, env, requestId, actor, orgId, entryId);
+    }
+
+    if (PIPELINE_RE.test(path)) {
+      if (request.method !== "GET") return methodNotAllowed(requestId);
+      return handleGetPipeline(env, requestId, actor, orgId);
     }
 
     if (SCORING_PROFILE_RE.test(path)) {
@@ -166,6 +211,15 @@ export async function route(request: Request, env: Env, ctx?: RequestContext): P
       if (!prospectId) return errorResponse("not_found", "Not found", 404, requestId);
       if (request.method === "POST") return handleGenerateInsight(request, env, requestId, actor, orgId, prospectId);
       if (request.method === "GET") return handleListInsights(request, env, requestId, actor, orgId, prospectId);
+      return methodNotAllowed(requestId);
+    }
+
+    const activitiesMatch = path.match(PROSPECT_ACTIVITIES_RE);
+    if (activitiesMatch) {
+      const prospectId = parseProspectPublicId(activitiesMatch[2]!);
+      if (!prospectId) return errorResponse("not_found", "Not found", 404, requestId);
+      if (request.method === "GET") return handleListActivities(request, env, requestId, actor, orgId, prospectId);
+      if (request.method === "POST") return handleCreateActivity(request, env, requestId, actor, orgId, prospectId);
       return methodNotAllowed(requestId);
     }
 

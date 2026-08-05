@@ -87,6 +87,11 @@ describe("api-edge prospecting facade", () => {
       `/v1/organizations/${ORG}/prospects/rescore`,
       `/v1/organizations/${ORG}/scoring-profile`,
       `/v1/organizations/${ORG}/prospects/${PROSPECT}/insights`,
+      `/v1/organizations/${ORG}/prospects/${PROSPECT}/activities`,
+      `/v1/organizations/${ORG}/pipeline`,
+      `/v1/organizations/${ORG}/pipeline/stages`,
+      `/v1/organizations/${ORG}/pipeline/entries`,
+      `/v1/organizations/${ORG}/pipeline/entries/pen_33333333333333333333333333333333`,
     ])("matches %s", (path) => {
       expect(isProspectingRoute(path)).toBe(true);
     });
@@ -251,6 +256,36 @@ describe("api-edge prospecting facade", () => {
       const response = await handleProspectingRoute(authedRequest("POST", path, {}), env, "req_1", path);
       expect(response.status).toBe(200);
       expect(calls).toHaveLength(1);
+    });
+  });
+
+  describe("pipeline route shapes", () => {
+    it("does not read 'stages' or 'entries' as an entry id", async () => {
+      const { fetcher, calls } = createDownstream();
+      const env = { IDENTITY_WORKER: createIdentity(), PROSPECTING_WORKER: fetcher, ENVIRONMENT: "test" } as Env;
+
+      const stages = `/v1/organizations/${ORG}/pipeline/stages`;
+      expect((await handleProspectingRoute(authedRequest("GET", stages), env, "req_1", stages)).status).toBe(200);
+
+      const entries = `/v1/organizations/${ORG}/pipeline/entries`;
+      expect((await handleProspectingRoute(authedRequest("POST", entries, {}), env, "req_2", entries)).status).toBe(200);
+      expect(calls).toHaveLength(2);
+    });
+
+    it("only permits PATCH on a single entry", async () => {
+      const { fetcher } = createDownstream();
+      const env = { IDENTITY_WORKER: createIdentity(), PROSPECTING_WORKER: fetcher, ENVIRONMENT: "test" } as Env;
+      const path = `/v1/organizations/${ORG}/pipeline/entries/pen_33333333333333333333333333333333`;
+      expect((await handleProspectingRoute(authedRequest("DELETE", path), env, "req_1", path)).status).toBe(405);
+      expect((await handleProspectingRoute(authedRequest("PATCH", path, {}), env, "req_2", path)).status).toBe(200);
+    });
+
+    it("forwards a PATCH body downstream", async () => {
+      const { fetcher, calls } = createDownstream();
+      const env = { IDENTITY_WORKER: createIdentity(), PROSPECTING_WORKER: fetcher, ENVIRONMENT: "test" } as Env;
+      const path = `/v1/organizations/${ORG}/pipeline/entries/pen_33333333333333333333333333333333`;
+      await handleProspectingRoute(authedRequest("PATCH", path, { stageKey: "contacted" }), env, "req_1", path);
+      expect(calls[0]!.init.body).toBeDefined();
     });
   });
 

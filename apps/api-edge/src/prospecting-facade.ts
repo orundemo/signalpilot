@@ -21,6 +21,11 @@ const ROUTES: ReadonlyArray<{ re: RegExp; methods: ReadonlySet<string> }> = [
   { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/rescore$`), methods: new Set(["POST"]) },
   { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/scores$`), methods: new Set(["GET"]) },
   { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/insights$`), methods: new Set(["POST", "GET"]) },
+  { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/activities$`), methods: new Set(["GET", "POST"]) },
+  { re: new RegExp(`^${ORG}\\/pipeline$`), methods: new Set(["GET"]) },
+  { re: new RegExp(`^${ORG}\\/pipeline\\/stages$`), methods: new Set(["GET", "PUT"]) },
+  { re: new RegExp(`^${ORG}\\/pipeline\\/entries$`), methods: new Set(["POST"]) },
+  { re: new RegExp(`^${ORG}\\/pipeline\\/entries\\/[^/]+$`), methods: new Set(["PATCH"]) },
   { re: new RegExp(`^${ORG}\\/scoring-profile$`), methods: new Set(["GET", "PUT"]) },
 ];
 
