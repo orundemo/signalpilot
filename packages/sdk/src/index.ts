@@ -22,6 +22,7 @@ import { MeteringClient } from "./metering.js";
 import { NotificationsClient } from "./notifications.js";
 import { OrganizationsClient } from "./organizations.js";
 import { ProjectsClient } from "./projects.js";
+import { ProspectingClient } from "./prospecting.js";
 import { SecurityEventsClient } from "./securityEvents.js";
 import { WebhooksClient } from "./webhooks.js";
 import { Transport, type ClientOptions } from "./transport.js";
@@ -29,6 +30,7 @@ import { Transport, type ClientOptions } from "./transport.js";
 export class SignalPilot {
   readonly organizations: OrganizationsClient;
   readonly projects: ProjectsClient;
+  readonly prospecting: ProspectingClient;
   readonly environments: EnvironmentsClient;
   readonly memberships: MembershipsClient;
   readonly apiKeys: ApiKeysClient;
@@ -48,6 +50,7 @@ export class SignalPilot {
     this.transport = new Transport(options);
     this.organizations = new OrganizationsClient(this.transport);
     this.projects = new ProjectsClient(this.transport);
+    this.prospecting = new ProspectingClient(this.transport);
     this.environments = new EnvironmentsClient(this.transport);
     this.memberships = new MembershipsClient(this.transport);
     this.apiKeys = new ApiKeysClient(this.transport);
@@ -66,6 +69,7 @@ export class SignalPilot {
 // Resource clients (also reachable via `client.<resource>`).
 export { OrganizationsClient } from "./organizations.js";
 export { ProjectsClient } from "./projects.js";
+export { ProspectingClient, type PageQuery, type BulkRescoreResponse } from "./prospecting.js";
 export { EnvironmentsClient } from "./environments.js";
 export { MembershipsClient } from "./memberships.js";
 export {
@@ -166,6 +170,65 @@ export type {
   ListEnvironmentsResponse,
   ArchiveEnvironmentResponse,
 } from "@saas/contracts/projects";
+
+// Prospecting — the product bounded context. Every shape comes from the
+// contracts module, so the SDK surface cannot drift from the worker.
+export type {
+  PublicProspect,
+  PublicSignal,
+  PublicScore,
+  PublicInsight,
+  PublicDiscoveryRun,
+  PublicScoringProfile,
+  PublicPipelineStage,
+  PublicPipelineEntry,
+  PipelineBoardEntry,
+  PublicActivity,
+  ScoreContribution,
+  GuardrailNote,
+  QuotaExhaustedDetails,
+  DiscoveryQuery,
+  ListProspectsQuery,
+  CreateProspectRequest,
+  UpdateProspectRequest,
+  CreateDiscoveryRequest,
+  GenerateInsightRequest,
+  PutScoringProfileRequest,
+  PutPipelineStagesRequest,
+  CreatePipelineEntryRequest,
+  UpdatePipelineEntryRequest,
+  CreateActivityRequest,
+  SignalKind,
+  SignalSeverity,
+  SignalFeatures,
+  SizeBand,
+  ScoreBand,
+  StageOutcome,
+  ActivityKind,
+  InsightKind,
+  GuardrailVerdict,
+  DiscoveryAdapterId,
+  DiscoveryRunStatus,
+  ProspectingEventType,
+} from "@saas/contracts/prospecting";
+
+export {
+  SIGNAL_KINDS,
+  DEFAULT_SIGNAL_WEIGHTS,
+  SCORE_BANDS,
+  SCORE_BAND_THRESHOLDS,
+  SIZE_BANDS,
+  INSIGHT_KINDS,
+  GUARDRAIL_VERDICTS,
+  DISCOVERY_ADAPTERS,
+  DEFAULT_PIPELINE_STAGES,
+  PROSPECTING_METERS,
+  PROSPECTING_ENTITLEMENTS,
+  PROSPECTING_EVENT_TYPES,
+  PROSPECTING_RULESET_VERSION,
+  bandForScore,
+  resolveWeights,
+} from "@saas/contracts/prospecting";
 
 export type {
   PublicApiKey,

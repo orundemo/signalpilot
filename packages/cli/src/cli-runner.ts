@@ -36,6 +36,22 @@ import {
 } from "./commands/notification-preferences.js";
 import { integrationsGithubTokenCommand } from "./commands/integrations-token.js";
 import {
+  discoverListCommand,
+  discoverRunCommand,
+  discoverStatusCommand,
+  insightsGenerateCommand,
+  insightsListCommand,
+  pipelineAddCommand,
+  pipelineBoardCommand,
+  pipelineMoveCommand,
+  pipelineStagesCommand,
+  prospectsArchiveCommand,
+  prospectsExplainCommand,
+  prospectsListCommand,
+  prospectsRescoreCommand,
+  prospectsSignalsCommand,
+} from "./commands/prospecting.js";
+import {
   usageSummaryCommand,
   billingSummaryCommand,
   auditListCommand,
@@ -192,6 +208,27 @@ function buildRouter(opts: RunOptions): Router {
   r.register(["notifications", "preferences"], "Show your email notification preferences for an org", notificationPreferencesGetCommand);
   r.register(["notifications", "preferences", "set"], "Enable/disable an email notification category", notificationPreferencesSetCommand);
   r.register(["integrations", "github", "token"], "Mint a short-lived, repo-scoped GitHub installation token", integrationsGithubTokenCommand);
+
+  // Prospecting — the product surface. The walkthrough these commands support
+  // (discover → signals → explain → generate → move) is how each backend
+  // milestone is verified on a deployed environment.
+  r.register(["discover", "run"], "Run a discovery against a source adapter", discoverRunCommand);
+  r.register(["discover", "status"], "Show a discovery run's status and counters", discoverStatusCommand);
+  r.register(["discover", "list"], "List recent discovery runs", discoverListCommand);
+
+  r.register(["prospects", "list"], "List prospects, newest first", prospectsListCommand);
+  r.register(["prospects", "signals"], "Show the observations recorded for a prospect", prospectsSignalsCommand);
+  r.register(["prospects", "explain"], "Show a prospect's score with its full derivation", prospectsExplainCommand);
+  r.register(["prospects", "rescore"], "Recompute a prospect's score from its current signals", prospectsRescoreCommand);
+  r.register(["prospects", "archive"], "Archive a prospect", prospectsArchiveCommand);
+
+  r.register(["insights", "generate"], "Generate a summary or outreach draft for a prospect", insightsGenerateCommand);
+  r.register(["insights", "list"], "List generated insights for a prospect", insightsListCommand);
+
+  r.register(["pipeline", "board"], "Show the pipeline board with stuck-in-stage counts", pipelineBoardCommand);
+  r.register(["pipeline", "stages"], "List the pipeline stages", pipelineStagesCommand);
+  r.register(["pipeline", "add"], "Add a prospect to the pipeline", pipelineAddCommand);
+  r.register(["pipeline", "move"], "Move, assign, or value a pipeline entry", pipelineMoveCommand);
   return r;
 }
 

@@ -9,9 +9,9 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 |-------|-------|
 | Epic status | **In progress** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0, SP1, SP2, SP3, SP4 |
-| Live on `stage` | SP0, SP1, SP2, SP3, SP4 |
-| Live on `prod` | SP0, SP1, SP2, SP3, SP4 |
+| Milestones shipped | SP0, SP1, SP2, SP3, SP4, SP5 |
+| Live on `stage` | SP0, SP1, SP2, SP3, SP4, SP5 |
+| Live on `prod` | SP0, SP1, SP2, SP3, SP4, SP5 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -41,7 +41,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 | SP2 | Scoring | **Shipped** | #11 | `stage` + `prod` | `engine/scoring.ts` (pure, 33 unit tests), scoring profiles, auto-score at discovery, rescore + bulk rescore, score history |
 | SP3 | Insights | **Shipped** | #12 | `stage` + `prod` | model adapter (Claude SDK + deterministic template fallback), `engine/guardrail.ts`, digest cache, entitlement gate before the model call |
 | SP4 | Pipeline | **Shipped** | #13 | `stage` + `prod` | lazy stage seeding, board with stuck-in-stage day counts, entries with the one-open-entry constraint, activity timeline |
-| SP5 | Edge + SDK + CLI | Draft | — | — | |
+| SP5 | Edge + SDK + CLI | **Shipped** | #14 | `stage` + `prod` | edge facade landed incrementally in SP1–SP4; `sdk.prospecting.*` (23 methods) and the `discover`/`prospects`/`insights`/`pipeline` command groups land here |
 | SP6 | Console | Draft | — | — | |
 | SP7 | Commercial | Draft | — | — | |
 | SP8 | Storefront + evidence | Draft | — | — | |
@@ -150,3 +150,19 @@ reason, rather than by silently editing the design.
 - **`daysInStage` is computed on read, not stored.** It is a pure function of
   `entered_stage_at` and the current clock, so a stored copy could only ever be
   stale.
+
+### SP5
+
+- **The edge facade landed in SP1 and grew with each milestone**, rather than
+  arriving whole here. Recorded as an SP1 deviation; SP5 is the SDK and CLI.
+- **The facade is 92 lines** — inside the "under ~100 LOC" bar in the plan.
+  Anything larger would mean logic had leaked into the edge; the facade does
+  route matching, method allow-listing, actor forwarding, and nothing else.
+- **`prospects explain` prints the derivation, not just the number.** The
+  plan's acceptance criterion is that the CLI can print a score with its full
+  explanation; the command renders each contribution's points, signal kind, and
+  reason string, plus the ruleset and profile versions that produced it.
+- **`prospects signals` abbreviates the source digest to 12 characters.** Long
+  enough to see it is a digest, short enough to read in a terminal — and the
+  point of showing it at all is that the payload it came from is not stored
+  anywhere.
