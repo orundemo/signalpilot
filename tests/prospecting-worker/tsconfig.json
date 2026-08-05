@@ -12,9 +12,14 @@
       "@saas/contracts": ["../../packages/contracts/src/index.ts"],
       "@saas/contracts/*": ["../../packages/contracts/src/*.ts"],
       "@saas/db/*": ["../../packages/db/src/*/index.ts"],
-      "@prospecting-worker/*": ["../../apps/prospecting-worker/src/*.ts"]
+      "@prospecting-worker/*": ["../../apps/prospecting-worker/src/*.ts"],
+      "@billing-worker/*": ["../../apps/billing-worker/src/*.ts"]
     }
   },
-  "include": ["src/**/*.ts", "../../apps/prospecting-worker/src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../../apps/prospecting-worker/src/**/*.ts",
+    "../../apps/billing-worker/src/plan-catalog.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

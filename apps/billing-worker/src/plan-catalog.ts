@@ -84,6 +84,11 @@ export const PLAN_CATALOG: PlanDefinition[] = [
       { entitlementKey: "feature.custom_domains", valueType: "boolean", enabled: false, limitValue: null },
       { entitlementKey: "feature.multi_org", valueType: "boolean", enabled: false, limitValue: null },
       { entitlementKey: "limit.organizations", valueType: "quantity", enabled: true, limitValue: 1 },
+      // Prospecting (SP7). Discovery credits are the commercial model for the
+      // product context, so unlike a platform capability these ship gated from
+      // day one. Allowances are per calendar month, UTC.
+      { entitlementKey: "prospecting.discovery", valueType: "quantity", enabled: true, limitValue: 100 },
+      { entitlementKey: "prospecting.insight", valueType: "quantity", enabled: true, limitValue: 10 },
     ],
   },
   {
@@ -101,6 +106,8 @@ export const PLAN_CATALOG: PlanDefinition[] = [
       { entitlementKey: "feature.custom_domains", valueType: "boolean", enabled: true, limitValue: null },
       { entitlementKey: "feature.multi_org", valueType: "boolean", enabled: false, limitValue: null },
       { entitlementKey: "limit.organizations", valueType: "quantity", enabled: true, limitValue: 1 },
+      { entitlementKey: "prospecting.discovery", valueType: "quantity", enabled: true, limitValue: 1000 },
+      { entitlementKey: "prospecting.insight", valueType: "quantity", enabled: true, limitValue: 200 },
     ],
   },
   {
@@ -118,6 +125,8 @@ export const PLAN_CATALOG: PlanDefinition[] = [
       { entitlementKey: "feature.custom_domains", valueType: "boolean", enabled: true, limitValue: null },
       { entitlementKey: "feature.multi_org", valueType: "boolean", enabled: true, limitValue: null },
       { entitlementKey: "limit.organizations", valueType: "quantity", enabled: true, limitValue: 5 },
+      { entitlementKey: "prospecting.discovery", valueType: "quantity", enabled: true, limitValue: 10000 },
+      { entitlementKey: "prospecting.insight", valueType: "quantity", enabled: true, limitValue: 2000 },
     ],
   },
   {
@@ -135,6 +144,8 @@ export const PLAN_CATALOG: PlanDefinition[] = [
       { entitlementKey: "feature.custom_domains", valueType: "boolean", enabled: true, limitValue: null },
       { entitlementKey: "feature.multi_org", valueType: "boolean", enabled: true, limitValue: null },
       { entitlementKey: "limit.organizations", valueType: "quantity", enabled: true, limitValue: null },
+      { entitlementKey: "prospecting.discovery", valueType: "quantity", enabled: true, limitValue: null },
+      { entitlementKey: "prospecting.insight", valueType: "quantity", enabled: true, limitValue: null },
     ],
   },
 ];

@@ -9,9 +9,9 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 |-------|-------|
 | Epic status | **In progress** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0, SP1, SP2, SP3, SP4, SP5, SP6 |
-| Live on `stage` | SP0, SP1, SP2, SP3, SP4, SP5, SP6 |
-| Live on `prod` | SP0, SP1, SP2, SP3, SP4, SP5, SP6 |
+| Milestones shipped | SP0, SP1, SP2, SP3, SP4, SP5, SP6, SP7 |
+| Live on `stage` | SP0, SP1, SP2, SP3, SP4, SP5, SP6, SP7 |
+| Live on `prod` | SP0, SP1, SP2, SP3, SP4, SP5, SP6, SP7 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -43,7 +43,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 | SP4 | Pipeline | **Shipped** | #13 | `stage` + `prod` | lazy stage seeding, board with stuck-in-stage day counts, entries with the one-open-entry constraint, activity timeline |
 | SP5 | Edge + SDK + CLI | **Shipped** | #14 | `stage` + `prod` | edge facade landed incrementally in SP1–SP4; `sdk.prospecting.*` (23 methods) and the `discover`/`prospects`/`insights`/`pipeline` command groups land here |
 | SP6 | Console | **Shipped** | #15 | `stage` + `prod` | `discover` / `prospects` / `pipeline` / `insights` on the existing design system, over the live API via the SDK |
-| SP7 | Commercial | Draft | — | — | |
+| SP7 | Commercial | **Shipped** | #16 | `stage` + `prod` | plan entitlements on all four plans, quota events on both gated paths, two notification templates, eight published webhook event schemas |
 | SP8 | Storefront + evidence | Draft | — | — | |
 
 ## Deviations from design
@@ -187,3 +187,26 @@ reason, rather than by silently editing the design.
 - **The Playwright walkthrough was not run.** See the SP6 PR: it needs an
   authenticated session against a deployed environment, which this environment
   does not hold.
+
+### SP7
+
+- **The design names Free / Starter / Growth; this baseline's live plan codes
+  are `free` / `pro` / `business`.** Renaming a live plan code is a breaking
+  change to an in-production billing system, and the plan catalog carries an
+  explicit no-regress rule, so the design's tiers map onto the existing codes
+  in order: free→100/10, pro→1000/200, business→10000/2000, enterprise
+  unlimited. The allowances are exactly the design's; only the labels differ.
+- **Every plan carries both entitlements**, including enterprise (unlimited).
+  A plan missing one could not be gated at all — the entitlement check would
+  read `not_configured` and deny, which is the right failure but the wrong
+  reason.
+- **The notification templates route through the platform's `product`
+  category** rather than inventing prospecting-specific preferences, so the
+  existing opt-out applies with nothing new to build.
+- **`PROSPECTING_EVENT_SCHEMAS` publishes the payload shape per event type.**
+  Adding a field is additive; removing or retyping one is a breaking change to
+  every registered endpoint and needs a new event type. Tests assert that no
+  payload carries signal features, a source digest, or generated prose.
+- **The digest and discovery-complete senders are built and tested but not yet
+  scheduled.** See the SP7 PR — the daily cron belongs in `notifications-worker`
+  and is called out rather than half-wired.
