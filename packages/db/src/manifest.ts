@@ -183,5 +183,32 @@ export const manifest: MigrationManifest = {
       description:
         "Connection pointer on the inbound-delivery inbox (nullable connection_id + partial index) — lets the per-connection delivery log scope precisely; attributed by the IG2 cron drain",
     },
+    {
+      id: "200_prospecting_core",
+      context: "prospecting",
+      path: "200_prospecting_core/up.sql",
+      checksum:
+        "a5aea16bb5413846e94959cd01dc033023ae86dc28dec7c96eaa9203cbc76a68",
+      description:
+        "Prospecting persistence foundation (SP0) — org-scoped prospects with a dedupe-key uniqueness constraint, derived-features-only signals carrying a source digest instead of the payload, and metered discovery runs with partial-failure counters",
+    },
+    {
+      id: "210_prospecting_scoring",
+      context: "prospecting",
+      path: "210_prospecting_scoring/up.sql",
+      checksum:
+        "789c3d33fe72ea116774826d231bb2b0dfb6164448e1aa673e739f9e1d2b85bb",
+      description:
+        "Prospecting scoring (SP0) — append-only per-org weight profiles (one active version), append-only explainable scores carrying ruleset/profile versions and per-rule contributions, and digest-keyed guardrailed insights",
+    },
+    {
+      id: "220_prospecting_pipeline",
+      context: "prospecting",
+      path: "220_prospecting_pipeline/up.sql",
+      checksum:
+        "dffeb42e6ecf044344353856152700cef47ac97d6389028fccdbff41c18520c6",
+      description:
+        "Prospecting pipeline (SP0) — per-org stages, entries with a partial unique constraint permitting one open entry per prospect and a stage clock that resets on every move, and the append-only activity timeline",
+    },
   ],
 };
