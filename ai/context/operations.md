@@ -68,6 +68,33 @@ Caveats that matter:
 - GitHub Actions billing exhaustion presents as failing lanes with NO
   logs anywhere; the real message is only in the check-run ANNOTATIONS
   (`gh api repos/<o>/<r>/check-runs/<id>/annotations`).
+- **`--changed` is path-based and does NOT cascade to dependents.** A
+  commit that touches only `packages/<x>` plans `<x>` and nothing else,
+  even though the workers BUNDLE that package — their deployed scripts
+  keep the old copy indefinitely. `dependsOn` does not change this; it is
+  deploy ordering and graph truth only. Confirm with:
+
+  ```
+  orun plan --changed --files packages/policy-engine/src/index.ts
+  # → components: policy-engine        (policy-worker is NOT planned)
+  ```
+
+  This shipped a live outage once. SP0 added eleven prospecting actions
+  to `@saas/policy-engine`; `policy-worker` was never replanned across
+  all nine epic merges, so it served a pre-SP0 bundle, denied every
+  prospecting action as `unknown_action`, and the console showed
+  `not_found` on a product that was fully deployed and migrated.
+
+  **When you change a `packages/*` that a worker bundles, plan that
+  worker explicitly** — either touch a file under its component `path`,
+  or pass `--component <worker>`. To see who bundles what:
+
+  ```
+  orun component --changed --files <changed-file> --explain
+  ```
+
+  Its `Dependents` section is computed from `dependsOn` and is accurate;
+  it just is not what `plan --changed` acts on.
 
 ## Secrets model
 

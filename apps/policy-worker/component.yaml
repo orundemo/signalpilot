@@ -14,6 +14,25 @@ spec:
   owner: platform
   domain: starter-runtime
   path: apps/policy-worker
+  # This worker BUNDLES @saas/policy-engine — the action registry and the
+  # role→permission grants are compiled into the deployed script, not read at
+  # runtime. The edge was missing, so the graph did not know policy-engine had
+  # a single dependent.
+  #
+  # It cost a production outage. SP0 added eleven prospecting actions to the
+  # engine's `ALL_KNOWN_ACTIONS`; `orun plan --changed` planned `policy-engine`
+  # and nothing else, so this worker kept serving a pre-SP0 bundle for the whole
+  # epic. Every prospecting authorize hit `deny("unknown_action")`, and
+  # prospecting-worker's deny-as-404 turned that into the console's "not_found".
+  # The product was deployed, wired, and migrated — and unreachable.
+  #
+  # NOTE: `dependsOn` is deploy ORDERING and graph truth. It does NOT propagate
+  # change detection: `orun plan --changed` is strictly path-based, so a future
+  # policy-engine-only commit will still not replan this worker. See the runbook
+  # entry — until orun cascades, an engine change needs this component touched
+  # (or planned explicitly with `--component policy-worker`).
+  dependsOn:
+    - component: policy-engine
   subscribe:
     environments:
       - name: dev
