@@ -82,6 +82,10 @@ describe("api-edge prospecting facade", () => {
       `/v1/organizations/${ORG}/prospects/${PROSPECT}`,
       `/v1/organizations/${ORG}/prospects/${PROSPECT}/archive`,
       `/v1/organizations/${ORG}/prospects/${PROSPECT}/signals`,
+      `/v1/organizations/${ORG}/prospects/${PROSPECT}/rescore`,
+      `/v1/organizations/${ORG}/prospects/${PROSPECT}/scores`,
+      `/v1/organizations/${ORG}/prospects/rescore`,
+      `/v1/organizations/${ORG}/scoring-profile`,
     ])("matches %s", (path) => {
       expect(isProspectingRoute(path)).toBe(true);
     });
@@ -210,6 +214,33 @@ describe("api-edge prospecting facade", () => {
       const response = await handleProspectingRoute(new Request(`https://api.test${path}`), env, "req_1", path);
       expect(response.status).toBe(401);
       expect(calls).toHaveLength(0);
+    });
+  });
+
+  describe("method allow-lists", () => {
+    it("only permits PUT and GET on the scoring profile", async () => {
+      const { fetcher, calls } = createDownstream();
+      const env = { IDENTITY_WORKER: createIdentity(), PROSPECTING_WORKER: fetcher, ENVIRONMENT: "test" } as Env;
+      const path = `/v1/organizations/${ORG}/scoring-profile`;
+      expect((await handleProspectingRoute(authedRequest("DELETE", path), env, "req_1", path)).status).toBe(405);
+      expect(calls).toHaveLength(0);
+      expect((await handleProspectingRoute(authedRequest("GET", path), env, "req_2", path)).status).toBe(200);
+    });
+
+    it("only permits POST on a rescore", async () => {
+      const { fetcher } = createDownstream();
+      const env = { IDENTITY_WORKER: createIdentity(), PROSPECTING_WORKER: fetcher, ENVIRONMENT: "test" } as Env;
+      const path = `/v1/organizations/${ORG}/prospects/${PROSPECT}/rescore`;
+      expect((await handleProspectingRoute(authedRequest("GET", path), env, "req_1", path)).status).toBe(405);
+    });
+
+    it("treats /prospects/rescore as the bulk action, not a prospect id", async () => {
+      const { fetcher, calls } = createDownstream();
+      const env = { IDENTITY_WORKER: createIdentity(), PROSPECTING_WORKER: fetcher, ENVIRONMENT: "test" } as Env;
+      const path = `/v1/organizations/${ORG}/prospects/rescore`;
+      const response = await handleProspectingRoute(authedRequest("POST", path, {}), env, "req_1", path);
+      expect(response.status).toBe(200);
+      expect(calls).toHaveLength(1);
     });
   });
 

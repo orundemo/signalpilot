@@ -12,9 +12,15 @@ const ROUTES: ReadonlyArray<{ re: RegExp; methods: ReadonlySet<string> }> = [
   { re: new RegExp(`^${ORG}\\/discoveries$`), methods: new Set(["POST", "GET"]) },
   { re: new RegExp(`^${ORG}\\/discoveries\\/[^/]+$`), methods: new Set(["GET"]) },
   { re: new RegExp(`^${ORG}\\/prospects$`), methods: new Set(["GET", "POST"]) },
+  // `POST /prospects/rescore` is the bulk action, not a prospect id — matched
+  // before the id shape here for the same reason the worker's router does.
+  { re: new RegExp(`^${ORG}\\/prospects\\/rescore$`), methods: new Set(["POST"]) },
   { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+$`), methods: new Set(["GET", "PATCH"]) },
   { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/archive$`), methods: new Set(["POST"]) },
   { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/signals$`), methods: new Set(["GET"]) },
+  { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/rescore$`), methods: new Set(["POST"]) },
+  { re: new RegExp(`^${ORG}\\/prospects\\/[^/]+\\/scores$`), methods: new Set(["GET"]) },
+  { re: new RegExp(`^${ORG}\\/scoring-profile$`), methods: new Set(["GET", "PUT"]) },
 ];
 
 /**

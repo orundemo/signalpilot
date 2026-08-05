@@ -169,7 +169,11 @@ describe("discovery run — dedupe", () => {
     });
 
     const secondRunEvents = eventsRepo.appended.slice(beforeSecond).map((e) => e.event.type);
-    expect(secondRunEvents).toEqual(["prospecting.discovery.completed"]);
+    expect(secondRunEvents).not.toContain("prospecting.prospect.created");
+    // A converging re-run still rescores — the signals were refreshed — so
+    // `scored` is expected; only `created` must not repeat.
+    expect(secondRunEvents.filter((t) => t === "prospecting.prospect.scored").length).toBeGreaterThan(0);
+    expect(secondRunEvents[secondRunEvents.length - 1]).toBe("prospecting.discovery.completed");
   });
 });
 

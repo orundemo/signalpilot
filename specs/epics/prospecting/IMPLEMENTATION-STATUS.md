@@ -9,9 +9,9 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 |-------|-------|
 | Epic status | **In progress** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0, SP1 |
-| Live on `stage` | SP0, SP1 |
-| Live on `prod` | SP0, SP1 |
+| Milestones shipped | SP0, SP1, SP2 |
+| Live on `stage` | SP0, SP1, SP2 |
+| Live on `prod` | SP0, SP1, SP2 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -38,7 +38,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 |----|-----------|--------|----|-------------|-------|
 | SP0 | Contract + data model | **Shipped** | #9 | `stage` + `prod` | contracts module, migrations 200/210/220, `@saas/db/prospecting`, 11 RBAC actions, worker skeleton |
 | SP1 | Discovery | **Shipped** | #10 | `stage` + `prod` | adapters (`synthetic`, `web-signals`), `engine/dedupe.ts`, discovery + prospect routes, metering seam, events; edge facade pulled forward from SP5 |
-| SP2 | Scoring | Draft | — | — | |
+| SP2 | Scoring | **Shipped** | #11 | `stage` + `prod` | `engine/scoring.ts` (pure, 33 unit tests), scoring profiles, auto-score at discovery, rescore + bulk rescore, score history |
 | SP3 | Insights | Draft | — | — | |
 | SP4 | Pipeline | Draft | — | — | |
 | SP5 | Edge + SDK + CLI | Draft | — | — | |
@@ -86,3 +86,21 @@ reason, rather than by silently editing the design.
   allowances per month but does not define the window. A rolling 30 days makes
   "when do my credits reset" a support question; the calendar month is
   predictable and is what the 402 payload reports as `resetAt`.
+
+### SP2
+
+- **The bulk rescore is bounded at 200 prospects per call** and reports
+  `truncated` when the corpus is larger. `design.md` §5.2 names the action but
+  not its shape; an unbounded foreground loop would either time out mid-way —
+  leaving a half-rescored board with no record of where it stopped — or hold a
+  connection long enough to matter. The caller repeats.
+- **`profileVersion: 0` means "no org profile, code ruleset defaults".** The
+  design's profile table starts at version 1; an org that has never tuned
+  weights needs a value, and 0 reads correctly in the explainer.
+- **A zero-weight rule still appears in `contributions`, at zero points.** The
+  explainer then shows that the signal was seen and priced at nothing, rather
+  than looking identical to a signal that was never observed.
+- **`toPublicScore` maps `contributions[].signalId` to the public `sig_` form.**
+  It is stored as the internal UUID; returning both forms for one observation
+  would leave the console unable to join a contribution to the signal it came
+  from.
