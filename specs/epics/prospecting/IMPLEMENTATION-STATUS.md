@@ -296,6 +296,47 @@ link to any of them. Nothing asserted that the shell could reach the surfaces it
 had just built. The test now pinning the exact Solo link list is the assertion
 that was missing.
 
+### The product shipped complete and unreachable
+
+The nav defect made the surfaces invisible. Fixing it revealed that they would
+not have worked anyway.
+
+`policy-worker` bundles `@saas/policy-engine` — the action registry and the
+role→permission grants are compiled into the deployed script, not read at
+runtime. SP0 added eleven prospecting actions to `ALL_KNOWN_ACTIONS`.
+`orun plan --changed` is strictly path-based, so that commit planned
+`policy-engine` and nothing else, and `apps/policy-worker` was never touched
+across any of the nine epic merges. It served a pre-SP0 bundle throughout.
+
+An action outside `ALL_KNOWN_ACTIONS` denies with `unknown_action` before any
+role lookup, and `authorizeRequest` maps a deny to deny-as-404. So every
+prospecting request returned "Not found" — indistinguishable, by design, from
+the org not existing. **The property that makes membership unguessable is the
+same one that hid a total outage.** Every milestone's tests passed against an
+engine that was never deployed.
+
+Three things follow.
+
+**A bundled dependency is a deploy dependency.** `orun plan --changed` does not
+cascade — verified, not assumed: with `dependsOn: policy-engine` declared, a
+policy-engine-only change *still* plans only policy-engine, and a policy-worker
+change does not cascade to the ten workers depending on it either. `dependsOn`
+buys ordering and graph truth, not change propagation. The caveat and its
+reproduction now live in `ai/context/operations.md`.
+
+**Deny-as-404 needs a way to tell a denial from an absence in operations.** The
+UI cannot distinguish them and must not. But a 404 that means "your authorizer
+does not know this action exists" and a 404 that means "no such org" are the
+same string in the console and, right now, distinguishable only by reading
+worker logs. Nothing in this epic changed that; it is worth changing.
+
+**"CI is green" answered a question nobody asked.** Every run was green because
+every *planned* lane passed. The unplanned lane is the one that mattered. The
+operating contract already warned that a run touching no component files plans
+zero lanes; the sharper version is that a green run tells you nothing about
+components it did not plan, and the set it did not plan is not visible in the
+run summary.
+
 ### The same shape, three more times
 
 Working out the blast radius of the nav defect turned up three more instances
