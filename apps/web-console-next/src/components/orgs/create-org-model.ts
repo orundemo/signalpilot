@@ -9,6 +9,8 @@
  * replaced by a starting-point step (connect Git / clone a template).
  */
 
+import { orgHomePath } from "@/lib/org-home";
+
 export type CreateOrgMode = "parent" | "child";
 
 export type StepId = "details" | "plan" | "source" | "review";
@@ -191,11 +193,11 @@ export function createButtonLabel(
 /**
  * Where the console routes after a successful create (when it does not leave
  * for hosted checkout): the new org's Integrations page when the buyer chose
- * the GitHub starting point, else the new org's projects dashboard.
+ * the GitHub starting point, else the new org's home surface.
  */
 export function postCreatePath(mode: CreateOrgMode, source: SourceChoice, orgSlug: string): string {
   if (mode === "child" && source.kind === "git" && source.provider === "github") {
     return `/orgs/${orgSlug}/settings/integrations`;
   }
-  return `/orgs/${orgSlug}/projects`;
+  return orgHomePath(orgSlug);
 }

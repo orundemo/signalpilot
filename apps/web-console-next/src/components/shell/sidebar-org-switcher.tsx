@@ -15,6 +15,7 @@ import { useSession } from "@/lib/session";
 import { wrap } from "@/lib/api";
 import { useApiQuery, qk } from "@/lib/query";
 import { SOLO_MODE } from "@/lib/solo-mode";
+import { orgHomePath } from "@/lib/org-home";
 
 /**
  * Org switcher anchored at the top of the sidebar (Vercel's team-switcher
@@ -70,7 +71,7 @@ export function SidebarOrgSwitcher({ onNavigate }: { onNavigate?: () => void } =
       <DropdownMenuContent align="start" className="min-w-[240px]">
         <DropdownMenuLabel>Organizations</DropdownMenuLabel>
         {orgs?.map((o) => (
-          <DropdownMenuItem key={o.id} onSelect={() => go(`/orgs/${o.slug}/projects`)}>
+          <DropdownMenuItem key={o.id} onSelect={() => go(orgHomePath(o.slug))}>
             <Building2 className="h-4 w-4 opacity-70" />
             <span className="truncate">{o.name}</span>
             {o.slug === orgSlug && <Check className="ml-auto h-4 w-4" />}

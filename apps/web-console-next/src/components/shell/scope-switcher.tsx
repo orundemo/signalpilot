@@ -16,6 +16,7 @@ import { cn } from "@/lib/cn";
 import { useSession } from "@/lib/session";
 import { wrap } from "@/lib/api";
 import { useApiQuery, qk } from "@/lib/query";
+import { orgHomePath } from "@/lib/org-home";
 
 /**
  * URL-driven scope switcher.
@@ -78,7 +79,7 @@ export function ScopeSwitcher() {
             <>
               <DropdownMenuLabel>Organizations</DropdownMenuLabel>
               {orgs.map((o) => (
-                <DropdownMenuItem key={o.id} onSelect={() => router.push(`/orgs/${o.slug}/projects`)}>
+                <DropdownMenuItem key={o.id} onSelect={() => router.push(orgHomePath(o.slug))}>
                   <Building2 className="h-4 w-4 opacity-70" /> {o.name}
                   <span className="ml-auto text-[10px] text-muted-foreground">{o.slug}</span>
                 </DropdownMenuItem>
@@ -116,7 +117,7 @@ export function ScopeSwitcher() {
                 <DropdownMenuSeparator />
               </>
             ) : null}
-            <DropdownMenuItem onSelect={() => router.push(`/orgs/${orgSlug}/projects`)}>
+            <DropdownMenuItem onSelect={() => router.push(orgHomePath(orgSlug))}>
               View all projects…
             </DropdownMenuItem>
           </Crumb>

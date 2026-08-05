@@ -14,28 +14,8 @@ import {
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/components/ui/toast";
-import {
-  Building2,
-  FolderKanban,
-  Boxes,
-  KeyRound,
-  Settings,
-  SlidersHorizontal,
-  ScrollText,
-  Receipt,
-  UserPlus,
-  PlusCircle,
-  LogOut,
-  Users,
-  Mail,
-  Bell,
-  Gauge,
-  Globe,
-  ShieldCheck,
-  User2,
-  Webhook,
-  type LucideIcon,
-} from "lucide-react";
+import { SOLO_MODE } from "@/lib/solo-mode";
+import { SHELL_ICONS } from "./icons";
 import {
   buildBaseCommands,
   composeCommands,
@@ -44,29 +24,9 @@ import {
   type CommandDescriptor,
 } from "./command-registry";
 
-// Icon-name → component resolver. Keeps `command-registry.ts` pure (string
-// names only) while the renderer owns the concrete icon set.
-const ICONS: Record<string, LucideIcon> = {
-  Building2,
-  FolderKanban,
-  Boxes,
-  KeyRound,
-  Settings,
-  SlidersHorizontal,
-  ScrollText,
-  Receipt,
-  UserPlus,
-  PlusCircle,
-  LogOut,
-  Users,
-  Mail,
-  Bell,
-  Gauge,
-  Globe,
-  ShieldCheck,
-  User2,
-  Webhook,
-};
+// Icon names resolve through the shared `SHELL_ICONS` map, which both this and
+// the sidebar render from — see `icons.ts` for why it is shared rather than
+// duplicated per renderer.
 
 // --- Registration context --------------------------------------------------
 // Any page/product area can contribute extra descriptors for the lifetime of
@@ -126,6 +86,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       projectSlug: params?.projectSlug ?? null,
       isLocked,
       targets: availableTargets.map((t) => ({ name: t.name })),
+      soloMode: SOLO_MODE,
     }),
     [params?.orgSlug, params?.projectSlug, isLocked, availableTargets],
   );
@@ -178,7 +139,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
                   heading={group === "Target" ? `Target (current: ${target.name})` : group}
                 >
                   {items.map((cmd) => {
-                    const Icon = cmd.icon ? ICONS[cmd.icon] : undefined;
+                    const Icon = cmd.icon ? SHELL_ICONS[cmd.icon] : undefined;
                     return (
                       <CommandItem
                         key={cmd.id}

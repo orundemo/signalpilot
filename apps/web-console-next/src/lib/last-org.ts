@@ -17,7 +17,8 @@
  * the server instead so the default follows the user across devices/browsers.
  */
 
-import { STORAGE_PREFIX } from "./app-config";
+import { PUBLIC_LANDING_PATH, STORAGE_PREFIX } from "./app-config";
+import { orgHomePath } from "./org-home";
 import { pickAccountBillingOrg } from "@/components/billing/account-org";
 
 const LAST_ORG_KEY = `${STORAGE_PREFIX}.last-org`;
@@ -59,9 +60,21 @@ export function clearLastOrgSlug(): void {
  */
 export function defaultOrgDestination(lastOrgSlug: string | null): string {
   if (!lastOrgSlug) return "/onboarding";
-  // Both profiles land on the product's board. Projects is platform plumbing
-  // (and suppressed at the edge under Solo), so it is not anyone's dashboard.
-  return `/orgs/${lastOrgSlug}/prospects`;
+  return orgHomePath(lastOrgSlug);
+}
+
+/**
+ * Where a visit to the app root resolves.
+ *
+ * With a session, straight into the work. Without one, the storefront rather
+ * than the login form — someone who arrives at the deployment's root URL with
+ * no session is far more likely to be seeing the product for the first time
+ * than to be a returning operator, and a bare credential prompt tells them
+ * nothing. Pure so both branches are testable; the page passes
+ * `readStoredToken()` and `readLastOrgSlug()`.
+ */
+export function entryDestination(hasSession: boolean, lastOrgSlug: string | null): string {
+  return hasSession ? defaultOrgDestination(lastOrgSlug) : PUBLIC_LANDING_PATH;
 }
 
 /** Minimal shape of the API client needed to resolve the post-auth destination. */

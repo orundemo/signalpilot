@@ -1,5 +1,6 @@
 import {
   defaultOrgDestination,
+  entryDestination,
   resolvePostAuthDestination,
 } from "@web-console-next/lib/last-org";
 
@@ -20,6 +21,23 @@ describe("defaultOrgDestination", () => {
     // No remembered org still routes to onboarding (which forwards to the
     // auto-provisioned personal org once it loads).
     expect(defaultOrgDestination(null)).toBe("/onboarding");
+  });
+});
+
+describe("entryDestination", () => {
+  it("sends a signed-out visitor to the storefront, not the login form", () => {
+    // The root URL is the product's front door. A visitor with no session is
+    // far more likely to be seeing the product for the first time than to be a
+    // returning operator, and a bare credential prompt tells them nothing.
+    expect(entryDestination(false, null)).toBe("/signalpilot");
+    // Even a remembered slug doesn't change it — the slug is a stale hint once
+    // the token is gone.
+    expect(entryDestination(false, "acme")).toBe("/signalpilot");
+  });
+
+  it("sends a signed-in operator straight into the work", () => {
+    expect(entryDestination(true, "acme")).toBe("/orgs/acme/prospects");
+    expect(entryDestination(true, null)).toBe("/onboarding");
   });
 });
 

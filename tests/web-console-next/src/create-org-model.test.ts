@@ -7,6 +7,7 @@ import {
   sourceSummary,
   type PlanOption,
 } from "@web-console-next/components/orgs/create-org-model";
+import { orgHomePath } from "@web-console-next/lib/org-home";
 
 const plan = (code: string): PlanOption => {
   const p = PLAN_OPTIONS.find((x) => x.code === code);
@@ -92,11 +93,14 @@ describe("postCreatePath", () => {
     );
   });
 
-  it("routes everything else to the new org's projects dashboard", () => {
-    expect(postCreatePath("parent", { kind: "scratch" }, "acme")).toBe("/orgs/acme/projects");
-    expect(postCreatePath("child", { kind: "scratch" }, "acme")).toBe("/orgs/acme/projects");
+  it("routes everything else to the new org's home surface", () => {
+    // Deliberately compared against `orgHomePath` rather than a literal: this
+    // is one of six call sites that used to spell the home path inline, and
+    // pinning the literal here is what would let them drift apart again.
+    expect(postCreatePath("parent", { kind: "scratch" }, "acme")).toBe(orgHomePath("acme"));
+    expect(postCreatePath("child", { kind: "scratch" }, "acme")).toBe(orgHomePath("acme"));
     expect(postCreatePath("child", { kind: "template", templateId: "web-app" }, "acme")).toBe(
-      "/orgs/acme/projects",
+      orgHomePath("acme"),
     );
   });
 });

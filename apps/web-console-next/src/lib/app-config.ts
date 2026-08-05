@@ -12,7 +12,16 @@ export const CONSOLE_TITLE = `${PRODUCT_NAME} Console`;
 
 /** Marketing-facing product description (document metadata). */
 export const PRODUCT_DESCRIPTION =
-  "Next-gen control plane for your projects, environments, and entitlements.";
+  "Find local businesses whose websites are costing them customers, scored with a reason behind every point.";
+
+/**
+ * Where a signed-out visitor to the app root lands.
+ *
+ * The storefront, not the login form: the root URL is the product's front door,
+ * and a bare credential prompt tells a first-time visitor nothing about what
+ * they would be signing in to. The storefront carries its own "Sign in" link.
+ */
+export const PUBLIC_LANDING_PATH = "/signalpilot";
 
 /** The Cloudflare account's workers.dev subdomain serving this instance. */
 export const WORKERS_DEV_SUBDOMAIN = "orundemo";

@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { pickAccountBillingOrg } from "@/components/billing/account-org";
 import { useSession } from "@/lib/session";
 import { readLastOrgSlug, clearLastOrgSlug, defaultOrgDestination } from "@/lib/last-org";
+import { orgHomePath } from "@/lib/org-home";
 import { SOLO_MODE } from "@/lib/solo-mode";
 import { useApiQuery, qk, usePrefetch } from "@/lib/query";
 import { useToast } from "@/components/ui/toast";
@@ -148,7 +149,7 @@ export default function OrgsPage() {
           {orgs.data.map((o) => (
             <Link
               key={o.id}
-              href={`/orgs/${o.slug}/projects`}
+              href={orgHomePath(o.slug)}
               className="group"
               onMouseEnter={() =>
                 prefetch(qk.projects(o.id), () =>

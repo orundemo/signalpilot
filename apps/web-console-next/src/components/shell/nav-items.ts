@@ -6,12 +6,13 @@
  */
 
 import { SOLO_MODE } from "../../lib/solo-mode";
+import type { ShellIconName } from "./icons";
 
 export interface NavLink {
   href: string;
   label: string;
-  /** lucide icon name, resolved by the renderer. */
-  icon: string;
+  /** Icon name, resolved by the renderer against the shared `SHELL_ICONS` map. */
+  icon: ShellIconName;
   /** When true the link opens a nested sidebar panel (renderer shows a ›). */
   subPanel?: boolean;
 }
@@ -79,10 +80,10 @@ export function buildNavSections(scope: NavScope, soloMode: boolean = SOLO_MODE)
         // to it there would be a link to a 404.
         ...(soloMode
           ? []
-          : [
+          : ([
               { href: `${orgBase}/projects`, label: "Projects", icon: "FolderKanban" },
               { href: `${orgBase}/usage`, label: "Usage & quota", icon: "Gauge" },
-            ]),
+            ] satisfies NavLink[])),
         // Opens the dedicated settings panel — flagged so the renderer shows a ›.
         { href: `${orgBase}/settings`, label: "Settings", icon: "Settings", subPanel: true },
       ],
