@@ -25,6 +25,10 @@ import {
   Plug,
   GitBranch,
   type LucideIcon,
+  Search,
+  Target,
+  KanbanSquare,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { buildNavSections, isLinkActive } from "./nav-items";
@@ -51,6 +55,10 @@ const ICONS: Record<string, LucideIcon> = {
   User2,
   Plug,
   GitBranch,
+  Search,
+  Target,
+  KanbanSquare,
+  Sparkles,
 };
 
 /**

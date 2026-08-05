@@ -9,9 +9,9 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 |-------|-------|
 | Epic status | **In progress** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0, SP1, SP2, SP3, SP4, SP5 |
-| Live on `stage` | SP0, SP1, SP2, SP3, SP4, SP5 |
-| Live on `prod` | SP0, SP1, SP2, SP3, SP4, SP5 |
+| Milestones shipped | SP0, SP1, SP2, SP3, SP4, SP5, SP6 |
+| Live on `stage` | SP0, SP1, SP2, SP3, SP4, SP5, SP6 |
+| Live on `prod` | SP0, SP1, SP2, SP3, SP4, SP5, SP6 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -42,7 +42,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 | SP3 | Insights | **Shipped** | #12 | `stage` + `prod` | model adapter (Claude SDK + deterministic template fallback), `engine/guardrail.ts`, digest cache, entitlement gate before the model call |
 | SP4 | Pipeline | **Shipped** | #13 | `stage` + `prod` | lazy stage seeding, board with stuck-in-stage day counts, entries with the one-open-entry constraint, activity timeline |
 | SP5 | Edge + SDK + CLI | **Shipped** | #14 | `stage` + `prod` | edge facade landed incrementally in SP1–SP4; `sdk.prospecting.*` (23 methods) and the `discover`/`prospects`/`insights`/`pipeline` command groups land here |
-| SP6 | Console | Draft | — | — | |
+| SP6 | Console | **Shipped** | #15 | `stage` + `prod` | `discover` / `prospects` / `pipeline` / `insights` on the existing design system, over the live API via the SDK |
 | SP7 | Commercial | Draft | — | — | |
 | SP8 | Storefront + evidence | Draft | — | — | |
 
@@ -166,3 +166,24 @@ reason, rather than by silently editing the design.
   enough to see it is a digest, short enough to read in a terminal — and the
   point of showing it at all is that the payload it came from is not stored
   anywhere.
+
+### SP6
+
+- **The kanban uses native HTML5 drag-and-drop, not a library.** Adding a
+  drag-and-drop dependency to the console for one board is a bigger call than
+  the feature warrants; the native API covers the interaction, and every card
+  also carries a stage picker so the same move is reachable by keyboard and on
+  touch. Both paths call one handler.
+- **The four product surfaces sit above Projects in the sidebar.** The console
+  is now a product console first and a platform console second; platform
+  administration stays behind Settings, unchanged.
+- **All view-model logic lives in `components/prospecting/prospecting.ts`.**
+  Band treatment, bar scaling, quota parsing, stuck-in-stage, board grouping,
+  and prospect ordering are pure functions with no React, so every rule the
+  pages render is asserted without mounting a page.
+- **Score bars scale against the largest contribution in that score**, not
+  against 100 — otherwise a well-balanced 45 renders as a row of stubs, which
+  reads as "nothing here" when the point is the opposite.
+- **The Playwright walkthrough was not run.** See the SP6 PR: it needs an
+  authenticated session against a deployed environment, which this environment
+  does not hold.
