@@ -60,26 +60,32 @@ export function buildNavSections(scope: NavScope, soloMode: boolean = SOLO_MODE)
     // secondary navigation (see `settings-nav.ts`).
     sections.push({
       id: "org",
-      label: soloMode ? "Account" : orgSlug ? `Org · ${orgSlug}` : "Organization",
-      links: soloMode
-        ? [
-            // Solo: projects & usage/quota are platform plumbing the B2C user
-            // never sees; their surfaces collapse to the Settings (Account) panel.
-            { href: `${orgBase}/settings`, label: "Settings", icon: "Settings", subPanel: true },
-          ]
-        : [
-            // The product surfaces come first: this is what an operator opens
-            // the console to do. Platform administration sits behind Settings.
-            { href: `${orgBase}/discover`, label: "Discover", icon: "Search" },
-            { href: `${orgBase}/prospects`, label: "Prospects", icon: "Target" },
-            { href: `${orgBase}/pipeline`, label: "Pipeline", icon: "KanbanSquare" },
-            { href: `${orgBase}/insights`, label: "Insights", icon: "Sparkles" },
-            { href: `${orgBase}/isolation-proof`, label: "Isolation proof", icon: "ShieldCheck" },
-            { href: `${orgBase}/projects`, label: "Projects", icon: "FolderKanban" },
-            { href: `${orgBase}/usage`, label: "Usage & quota", icon: "Gauge" },
-            // Opens the dedicated settings panel — flagged so the renderer shows a ›.
-            { href: `${orgBase}/settings`, label: "Settings", icon: "Settings", subPanel: true },
-          ],
+      label: soloMode ? "Workspace" : orgSlug ? `Org · ${orgSlug}` : "Organization",
+      links: [
+        // The product surfaces come first, in BOTH profiles: this is what an
+        // operator opens the console to do.
+        //
+        // Solo suppresses platform *plumbing* — projects, usage/quota — not the
+        // product. An earlier version of this file put the whole link list
+        // behind the non-solo branch, which left a Solo instance showing
+        // nothing but "Settings" and made the product invisible on a deployment
+        // that shipped it.
+        { href: `${orgBase}/discover`, label: "Discover", icon: "Search" },
+        { href: `${orgBase}/prospects`, label: "Prospects", icon: "Target" },
+        { href: `${orgBase}/pipeline`, label: "Pipeline", icon: "KanbanSquare" },
+        { href: `${orgBase}/insights`, label: "Insights", icon: "Sparkles" },
+        { href: `${orgBase}/isolation-proof`, label: "Isolation proof", icon: "ShieldCheck" },
+        // Platform plumbing: suppressed at the api-edge under Solo, so linking
+        // to it there would be a link to a 404.
+        ...(soloMode
+          ? []
+          : [
+              { href: `${orgBase}/projects`, label: "Projects", icon: "FolderKanban" },
+              { href: `${orgBase}/usage`, label: "Usage & quota", icon: "Gauge" },
+            ]),
+        // Opens the dedicated settings panel — flagged so the renderer shows a ›.
+        { href: `${orgBase}/settings`, label: "Settings", icon: "Settings", subPanel: true },
+      ],
     });
   }
 

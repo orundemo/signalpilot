@@ -61,13 +61,37 @@ describe("buildNavSections", () => {
 });
 
 describe("buildNavSections under the Solo (M0) profile", () => {
-  it("relabels the org section to 'Account' and drops Projects + Usage", () => {
+  it("keeps the product surfaces and drops only the platform plumbing", () => {
     const org = buildNavSections({ orgSlug: "acme" }, true).find((s) => s.id === "org")!;
-    expect(org.label).toBe("Account");
+    expect(org.label).toBe("Workspace");
     const hrefs = org.links.map((l) => l.href);
-    expect(hrefs).toEqual(["/orgs/acme/settings"]); // only Settings survives
+
+    // Solo suppresses platform plumbing, not the product. Putting the whole
+    // link list behind the non-solo branch once left a Solo deployment showing
+    // nothing but "Settings" — the product was live and invisible.
+    expect(hrefs).toEqual([
+      "/orgs/acme/discover",
+      "/orgs/acme/prospects",
+      "/orgs/acme/pipeline",
+      "/orgs/acme/insights",
+      "/orgs/acme/isolation-proof",
+      "/orgs/acme/settings",
+    ]);
+
+    // Both are 404s at the api-edge under Solo, so linking to them would be a
+    // link to a dead page.
     expect(hrefs).not.toContain("/orgs/acme/projects");
     expect(hrefs).not.toContain("/orgs/acme/usage");
+  });
+
+  it("shows the same product surfaces in both profiles", () => {
+    const product = ["discover", "prospects", "pipeline", "insights"].map((s) => `/orgs/acme/${s}`);
+    for (const soloMode of [true, false]) {
+      const hrefs = buildNavSections({ orgSlug: "acme" }, soloMode)
+        .find((s) => s.id === "org")!
+        .links.map((l) => l.href);
+      for (const href of product) expect(hrefs).toContain(href);
+    }
   });
 
   it("suppresses the project section even when a project slug is present", () => {

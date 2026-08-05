@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { Building2, FolderKanban, Gauge, Settings, User2, type LucideIcon } from "lucide-react";
+import { Building2, KanbanSquare, Search, Settings, Target, User2, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { isLinkActive } from "./nav-items";
 
@@ -24,11 +24,14 @@ export function BottomTabs() {
   const pathname = usePathname();
   const orgSlug = params?.orgSlug ?? null;
 
+  // The four thumb-reachable destinations are the product's, not the
+  // platform's: discovering, working the board, and moving deals is what
+  // someone does from a phone.
   const tabs: Tab[] = orgSlug
     ? [
-        { href: "/orgs", label: "Orgs", icon: Building2 },
-        { href: `/orgs/${orgSlug}/projects`, label: "Projects", icon: FolderKanban },
-        { href: `/orgs/${orgSlug}/usage`, label: "Usage", icon: Gauge },
+        { href: `/orgs/${orgSlug}/discover`, label: "Discover", icon: Search },
+        { href: `/orgs/${orgSlug}/prospects`, label: "Prospects", icon: Target },
+        { href: `/orgs/${orgSlug}/pipeline`, label: "Pipeline", icon: KanbanSquare },
         { href: `/orgs/${orgSlug}/settings`, label: "Settings", icon: Settings },
       ]
     : [
