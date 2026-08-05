@@ -15,6 +15,7 @@
  * commands without editing this file.
  */
 
+import { isSoloSuppressedPath } from "@/lib/solo-routes";
 import type { ShellIconName } from "./icons";
 
 /** Stable group ordering for the palette. */
@@ -68,6 +69,13 @@ export interface CommandContext {
   isLocked: boolean;
   /** available API targets for the Target group (empty when locked). */
   targets: { name: string }[];
+  /**
+   * M0/Solo profile. Commands pointing at a surface the profile suppresses are
+   * filtered out — the palette must not be a back door into a page the edge
+   * 404s. Required rather than optional: forgetting to pass it is exactly how
+   * the palette drifted out of step with the sidebar in the first place.
+   */
+  soloMode: boolean;
 }
 
 /**
@@ -77,6 +85,10 @@ export interface CommandContext {
  * project-scoped commands only when both org and project slugs are present.
  * This mirrors the sidebar/scope-switcher invariant that scope comes from the
  * URL, never from local state.
+ *
+ * Profile-aware: under Solo the whole set is filtered by destination, so a
+ * command added later cannot reintroduce a link to a suppressed surface
+ * without also opting into it.
  */
 export function buildBaseCommands(ctx: CommandContext): CommandDescriptor[] {
   const out: CommandDescriptor[] = [];
@@ -253,7 +265,8 @@ export function buildBaseCommands(ctx: CommandContext): CommandDescriptor[] {
     keywords: ["sign out", "log out", "logout"],
   });
 
-  return out;
+  if (!ctx.soloMode) return out;
+  return out.filter((cmd) => cmd.kind !== "navigate" || !isSoloSuppressedPath(cmd.to));
 }
 
 function navItem(

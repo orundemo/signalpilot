@@ -50,6 +50,9 @@ describe("shell icon vocabulary", () => {
       projectSlug: "web",
       isLocked: false,
       targets: [{ name: "stage" }],
+      // Baseline: the widest command set, so the icon check covers every
+      // descriptor rather than just the ones Solo keeps.
+      soloMode: false,
     });
     const names = commands.map((c) => c.icon).filter((n): n is ShellIconName => n !== undefined);
     expect(names.length).toBeGreaterThan(0);
@@ -67,6 +70,7 @@ describe("shell icon vocabulary", () => {
         projectSlug: "web",
         isLocked: false,
         targets: [{ name: "stage" }],
+        soloMode: false,
       })
         .map((c) => c.icon)
         .filter((n): n is ShellIconName => n !== undefined),

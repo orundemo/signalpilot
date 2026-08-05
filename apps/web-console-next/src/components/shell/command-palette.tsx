@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useSession } from "@/lib/session";
 import { useToast } from "@/components/ui/toast";
+import { SOLO_MODE } from "@/lib/solo-mode";
 import { SHELL_ICONS } from "./icons";
 import {
   buildBaseCommands,
@@ -85,6 +86,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       projectSlug: params?.projectSlug ?? null,
       isLocked,
       targets: availableTargets.map((t) => ({ name: t.name })),
+      soloMode: SOLO_MODE,
     }),
     [params?.orgSlug, params?.projectSlug, isLocked, availableTargets],
   );

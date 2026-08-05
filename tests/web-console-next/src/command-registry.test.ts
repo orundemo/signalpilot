@@ -6,12 +6,14 @@ import {
   type CommandContext,
   type CommandDescriptor,
 } from "@web-console-next/components/shell/command-registry";
+import { isSoloSuppressedPath } from "@web-console-next/lib/solo-routes";
 
 const baseCtx: CommandContext = {
   orgSlug: null,
   projectSlug: null,
   isLocked: false,
   targets: [{ name: "stage" }, { name: "prod" }],
+  soloMode: false,
 };
 
 describe("buildBaseCommands", () => {
@@ -115,5 +117,82 @@ describe("groupCommands", () => {
     for (const g of groups) {
       for (const item of g.items) expect(item.group).toBe(g.group);
     }
+  });
+});
+
+describe("buildBaseCommands under the Solo (M0) profile", () => {
+  const solo = { ...baseCtx, orgSlug: "acme", projectSlug: "web", soloMode: true };
+
+  it("offers no command that lands on a surface the edge suppresses", () => {
+    // The palette used to register these unconditionally, so under Solo ⌘K was
+    // a menu of 404s — the sidebar and the settings rail both gated them and
+    // the palette never learned the profile existed.
+    const ids = buildBaseCommands(solo).map((c) => c.id);
+    for (const id of [
+      "nav.projects",
+      "nav.usage",
+      "nav.members",
+      "nav.invitations",
+      "nav.api-keys",
+      "nav.webhooks",
+      "nav.audit",
+      "nav.environments",
+      "create.org",
+      "create.project",
+      "create.invitation",
+      "create.api-key",
+      "create.environment",
+    ]) {
+      expect(ids).not.toContain(id);
+    }
+  });
+
+  it("keeps the product and the surfaces Solo actually serves", () => {
+    const ids = buildBaseCommands(solo).map((c) => c.id);
+    for (const id of [
+      "nav.discover",
+      "nav.prospects",
+      "nav.pipeline",
+      "nav.insights",
+      "nav.org-settings",
+      "nav.billing",
+      "nav.config",
+      "nav.account",
+      "nav.account.security",
+      "session.logout",
+    ]) {
+      expect(ids).toContain(id);
+    }
+  });
+
+  it("filters by destination, so a command added later is covered too", () => {
+    const extra: CommandDescriptor[] = [
+      {
+        id: "nav.future",
+        label: "Some future project surface",
+        group: "Navigation",
+        kind: "navigate",
+        to: "/orgs/acme/projects/web/git",
+      },
+    ];
+    // Filtering happens in `buildBaseCommands`, so a page-contributed command
+    // is the caller's responsibility — but the base set must not need a
+    // per-command condition to stay correct.
+    const withFuture = buildBaseCommands({ ...solo }).concat(extra);
+    expect(withFuture.filter((c) => c.id === "nav.future")).toHaveLength(1);
+    // What the profile does cover: every base navigate command resolves to a
+    // path the profile serves.
+    for (const cmd of buildBaseCommands(solo)) {
+      if (cmd.kind === "navigate") expect(isSoloSuppressedPath(cmd.to)).toBe(false);
+    }
+  });
+
+  it("leaves the baseline profile untouched", () => {
+    const ids = buildBaseCommands({ ...baseCtx, orgSlug: "acme", projectSlug: "web" }).map(
+      (c) => c.id,
+    );
+    expect(ids).toContain("nav.projects");
+    expect(ids).toContain("nav.members");
+    expect(ids).toContain("create.environment");
   });
 });
