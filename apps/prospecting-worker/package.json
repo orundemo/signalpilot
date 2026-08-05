@@ -19,6 +19,7 @@
     "wrangler": "^4.14.4"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
     "@saas/contracts": "workspace:*",
     "@saas/db": "workspace:*"
   }

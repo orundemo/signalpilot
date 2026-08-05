@@ -86,6 +86,7 @@ describe("api-edge prospecting facade", () => {
       `/v1/organizations/${ORG}/prospects/${PROSPECT}/scores`,
       `/v1/organizations/${ORG}/prospects/rescore`,
       `/v1/organizations/${ORG}/scoring-profile`,
+      `/v1/organizations/${ORG}/prospects/${PROSPECT}/insights`,
     ])("matches %s", (path) => {
       expect(isProspectingRoute(path)).toBe(true);
     });
@@ -104,6 +105,15 @@ describe("api-edge prospecting facade", () => {
   describe("rate-limit class", () => {
     it("puts a discovery run in the expensive class", () => {
       expect(prospectingRouteFamily(`/v1/organizations/${ORG}/discoveries`, "POST")).toBe("prospecting_expensive");
+    });
+
+    it("puts an insight generation in the expensive class — it costs a model call", () => {
+      expect(prospectingRouteFamily(`/v1/organizations/${ORG}/prospects/${PROSPECT}/insights`, "POST")).toBe(
+        "prospecting_expensive",
+      );
+      expect(prospectingRouteFamily(`/v1/organizations/${ORG}/prospects/${PROSPECT}/insights`, "GET")).toBe(
+        "prospecting",
+      );
     });
 
     it("leaves reads in the standard class", () => {
