@@ -17,6 +17,7 @@ import { useSession } from "@/lib/session";
 import { wrap } from "@/lib/api";
 import { useApiQuery, qk } from "@/lib/query";
 import { orgHomePath } from "@/lib/org-home";
+import { SOLO_MODE } from "@/lib/solo-mode";
 
 /**
  * URL-driven scope switcher.
@@ -26,6 +27,11 @@ import { orgHomePath } from "@/lib/org-home";
  *   always visible to the operator.
  * - Lets the user jump scopes via a single dropdown; selection re-writes the
  *   URL, never local state.
+ *
+ * Under Solo the project and environment crumbs are gone entirely. They are not
+ * merely empty there: the edge 404s `GET /projects`, so the query behind the
+ * crumb was a request guaranteed to fail, fired on every page load, behind a
+ * "Select project" control whose every destination was suppressed.
  */
 export function ScopeSwitcher() {
   const params = useParams<{ orgSlug?: string; projectSlug?: string; envSlug?: string }>();
@@ -49,7 +55,8 @@ export function ScopeSwitcher() {
   const projectsData = useApiQuery(
     qk.projects(currentOrg?.id ?? ""),
     () => wrap(async () => (await client.projects.list(currentOrg!.id)).projects),
-    { enabled: !!currentOrg },
+    // Not just hidden — not requested. Under Solo this route is a 404.
+    { enabled: !!currentOrg && !SOLO_MODE },
   ).data;
   const projects = currentOrg ? projectsData : null;
   const currentProject = React.useMemo(
@@ -61,7 +68,7 @@ export function ScopeSwitcher() {
     qk.environments(currentOrg?.id ?? "", currentProject?.id ?? ""),
     () =>
       wrap(async () => (await client.environments.list(currentOrg!.id, currentProject!.id)).environments),
-    { enabled: !!currentOrg && !!currentProject },
+    { enabled: !!currentOrg && !!currentProject && !SOLO_MODE },
   ).data;
   const envs = currentOrg && currentProject ? envsData : null;
 
@@ -91,7 +98,7 @@ export function ScopeSwitcher() {
         </Crumb>
       </div>
 
-      {orgSlug && (
+      {orgSlug && !SOLO_MODE && (
         <div className="hidden min-w-0 items-center md:flex">
           {/* Separator only needed to the org crumb, which is mobile-only. */}
           <Slash className="mx-0.5 h-3 w-3 text-muted-foreground/60 md:hidden" />
@@ -124,7 +131,7 @@ export function ScopeSwitcher() {
         </div>
       )}
 
-      {orgSlug && projectSlug && (
+      {orgSlug && projectSlug && !SOLO_MODE && (
         <div className="hidden min-w-0 items-center md:flex">
           <Slash className="h-3 w-3 text-muted-foreground/60 mx-0.5" />
           <Crumb
