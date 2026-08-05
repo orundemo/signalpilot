@@ -9,9 +9,9 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 |-------|-------|
 | Epic status | **In progress** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0, SP1, SP2 |
-| Live on `stage` | SP0, SP1, SP2 |
-| Live on `prod` | SP0, SP1, SP2 |
+| Milestones shipped | SP0, SP1, SP2, SP3 |
+| Live on `stage` | SP0, SP1, SP2, SP3 |
+| Live on `prod` | SP0, SP1, SP2, SP3 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -39,7 +39,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 | SP0 | Contract + data model | **Shipped** | #9 | `stage` + `prod` | contracts module, migrations 200/210/220, `@saas/db/prospecting`, 11 RBAC actions, worker skeleton |
 | SP1 | Discovery | **Shipped** | #10 | `stage` + `prod` | adapters (`synthetic`, `web-signals`), `engine/dedupe.ts`, discovery + prospect routes, metering seam, events; edge facade pulled forward from SP5 |
 | SP2 | Scoring | **Shipped** | #11 | `stage` + `prod` | `engine/scoring.ts` (pure, 33 unit tests), scoring profiles, auto-score at discovery, rescore + bulk rescore, score history |
-| SP3 | Insights | Draft | — | — | |
+| SP3 | Insights | **Shipped** | #12 | `stage` + `prod` | model adapter (Claude SDK + deterministic template fallback), `engine/guardrail.ts`, digest cache, entitlement gate before the model call |
 | SP4 | Pipeline | Draft | — | — | |
 | SP5 | Edge + SDK + CLI | Draft | — | — | |
 | SP6 | Console | Draft | — | — | |
@@ -104,3 +104,31 @@ reason, rather than by silently editing the design.
   It is stored as the internal UUID; returning both forms for one observation
   would leave the console unable to join a contribution to the signal it came
   from.
+
+### SP3
+
+- **Two model adapters ship, not one.** `anthropic.ts` calls the Claude
+  Messages API through the official SDK when `MODEL_API_KEY` is bound;
+  `template.ts` is a deterministic writer that composes prose from the
+  contributions. The template adapter is what the tests exercise (a model call
+  cannot give byte-identical output, and mocking the model everywhere would
+  leave the caching and metering paths tested only against a fiction), and it
+  is what an environment with no credential falls back to. The stored row
+  records `model: "template"`, so nothing is misrepresented as a model
+  generation. `design.md` §6.2 specifies one adapter behind one interface; this
+  is two implementations of that interface, not a second seam.
+- **The cache lookup runs *before* the entitlement gate.** Replaying a
+  generation the tenant already paid for must not consume a second credit and
+  must not fail when they are at their limit. The gate still precedes the
+  *model call*, which is what §6.2 requires.
+- **`POST /insights` returns 412, not 500, on a guardrail block or a model
+  decline.** Both are expected outcomes with a typed `reason`, and the
+  guardrail notes are returned so the console can say what was wrong rather
+  than showing a bare failure.
+- **An unscored prospect is a 412, not an implicit rescore.** Generating prose
+  about a prospect with no score would have the model supply the judgement the
+  engine is supposed to own.
+- **Bundle cost.** Adding `@anthropic-ai/sdk` takes the worker bundle from
+  24.6 KiB / 6.2 KiB gzipped to 744 KiB / 147 KiB gzipped — well inside the
+  Workers limit, but a real jump for a worker that is otherwise database code.
+  Recorded so the trade is visible if it ever needs revisiting.

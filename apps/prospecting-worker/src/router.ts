@@ -14,6 +14,8 @@ import { handleRescoreProspect } from "./handlers/rescore-prospect.js";
 import { handleListScores } from "./handlers/list-scores.js";
 import { handleBulkRescore } from "./handlers/bulk-rescore.js";
 import { handleGetScoringProfile, handlePutScoringProfile } from "./handlers/scoring-profile.js";
+import { handleGenerateInsight } from "./handlers/generate-insight.js";
+import { handleListInsights } from "./handlers/list-insights.js";
 import { errorResponse, methodNotAllowed, notFound } from "./http.js";
 import { generateRequestId, parseDiscoveryPublicId, parseOrgPublicId, parseProspectPublicId } from "./ids.js";
 
@@ -64,6 +66,7 @@ const PROSPECT_RESCORE_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/rescore$
 const PROSPECT_SCORES_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/scores$`);
 const BULK_RESCORE_RE = new RegExp(`^${ORG}\\/prospects\\/rescore$`);
 const SCORING_PROFILE_RE = new RegExp(`^${ORG}\\/scoring-profile$`);
+const PROSPECT_INSIGHTS_RE = new RegExp(`^${ORG}\\/prospects\\/([^/]+)\\/insights$`);
 
 export interface RequestContext {
   waitUntil(promise: Promise<unknown>): void;
@@ -155,6 +158,15 @@ export async function route(request: Request, env: Env, ctx?: RequestContext): P
       if (!prospectId) return errorResponse("not_found", "Not found", 404, requestId);
       if (request.method !== "GET") return methodNotAllowed(requestId);
       return handleListScores(request, env, requestId, actor, orgId, prospectId);
+    }
+
+    const insightsMatch = path.match(PROSPECT_INSIGHTS_RE);
+    if (insightsMatch) {
+      const prospectId = parseProspectPublicId(insightsMatch[2]!);
+      if (!prospectId) return errorResponse("not_found", "Not found", 404, requestId);
+      if (request.method === "POST") return handleGenerateInsight(request, env, requestId, actor, orgId, prospectId);
+      if (request.method === "GET") return handleListInsights(request, env, requestId, actor, orgId, prospectId);
+      return methodNotAllowed(requestId);
     }
 
     const prospectMatch = path.match(PROSPECT_ID_RE);
