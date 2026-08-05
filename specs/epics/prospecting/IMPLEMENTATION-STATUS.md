@@ -7,15 +7,15 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 
 | Field | Value |
 |-------|-------|
-| Epic status | **Draft — not started** |
-| Branch | `epic/prospecting` |
-| Milestones shipped | none |
-| Live on `stage` | no |
-| Live on `prod` | no |
+| Epic status | **In progress** |
+| Branch | milestone branches → `main` (charter merged in #8) |
+| Milestones shipped | SP0 |
+| Live on `stage` | SP0 |
+| Live on `prod` | SP0 |
 
-Nothing has been implemented yet. This epic introduces the charter, the
-technical design, and the SP0–SP8 milestone ladder; the first code lands with
-SP0.
+The charter, design, and milestone ladder merged in #8. SP0 lands the contract
+module, the three migrations, the persistence layer, the RBAC actions, and the
+worker skeleton.
 
 ## Baseline this epic starts from
 
@@ -36,7 +36,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 
 | ID | Milestone | Status | PR | Verified on | Notes |
 |----|-----------|--------|----|-------------|-------|
-| SP0 | Contract + data model | Draft | — | — | |
+| SP0 | Contract + data model | **Shipped** | #9 | `stage` + `prod` | contracts module, migrations 200/210/220, `@saas/db/prospecting`, 11 RBAC actions, worker skeleton |
 | SP1 | Discovery | Draft | — | — | |
 | SP2 | Scoring | Draft | — | — | |
 | SP3 | Insights | Draft | — | — | |
@@ -48,5 +48,20 @@ Recorded so that "what did the product layer add" stays answerable later.
 
 ## Deviations from design
 
-None recorded. Any implementation that diverges from `design.md` is noted here
-with the reason, rather than by silently editing the design.
+Any implementation that diverges from `design.md` is noted here with the
+reason, rather than by silently editing the design.
+
+### SP0
+
+- **`prospecting.signals` carries a `source` column** (the adapter id that
+  derived the observation) which `design.md` §3 does not list. It mirrors
+  `prospects.source` and makes "which adapter said this" answerable in the
+  score explainer without a join. Additive; no behaviour depends on its
+  absence.
+- **The full repository surface landed in SP0**, not just the core tables.
+  The plan assigns "repositories and types" to SP0 and all three migrations to
+  SP0; splitting the repository across SP1–SP4 would have meant four rounds of
+  edits to one file for no verification benefit. Handlers still land per
+  milestone.
+- **`ERROR_CODES.QUOTA_EXHAUSTED` was added in SP0** rather than SP7. It is a
+  contract, and SP0 is the contract milestone; SP3/SP7 consume it.

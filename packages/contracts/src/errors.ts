@@ -20,6 +20,10 @@ export const ERROR_CODES = {
   RATE_LIMITED: "rate_limited",
   VALIDATION_FAILED: "validation_failed",
   PRECONDITION_FAILED: "precondition_failed",
+  // A metered allowance is spent. Carries `QuotaExhaustedDetails` (meter,
+  // limit, reset date) so a client can render an upgrade prompt without a
+  // second round trip. Returned with HTTP 402.
+  QUOTA_EXHAUSTED: "quota_exhausted",
   UNSUPPORTED: "unsupported",
   INTERNAL_ERROR: "internal_error",
 } as const;

@@ -685,8 +685,9 @@ describe("listEffectivePermissions", () => {
     expect(result.policyVersion).toBe(1);
     expect(result.derivedScope.orgId).toBe("org_1");
 
+    // 31 platform actions + the 11 prospecting actions registered in SP0.
     const allowed = result.permissions.filter((p) => p.allow);
-    expect(allowed.length).toBe(31);
+    expect(allowed.length).toBe(42);
   });
 
   it("returns limited permissions for viewer", () => {
@@ -699,9 +700,14 @@ describe("listEffectivePermissions", () => {
     const allowed = result.permissions.filter((p) => p.allow);
     expect(allowed.map((p) => p.action).sort()).toEqual([
       "organization.config.read",
+      "organization.discovery.read",
+      "organization.insight.read",
       "organization.integration.read",
       "organization.metering.read",
+      "organization.pipeline.read",
+      "organization.prospect.read",
       "organization.read",
+      "organization.scoring_profile.read",
       "organization.webhook.read",
       "project.list",
       "project.webhook.read",

@@ -120,6 +120,21 @@ export const ORGANIZATION_ACTIONS = [
   "project.config.write",
   "project.webhook.read",
   "project.webhook.write",
+  // ── prospecting (SP0) ───────────────────────────────────
+  // Additive: no existing action changes meaning. Weight tuning
+  // (`scoring_profile.write`) is admin-only on purpose — it changes what
+  // every number in the org means.
+  "organization.prospect.read",
+  "organization.prospect.write",
+  "organization.prospect.archive",
+  "organization.discovery.read",
+  "organization.discovery.run",
+  "organization.insight.read",
+  "organization.insight.generate",
+  "organization.pipeline.read",
+  "organization.pipeline.write",
+  "organization.scoring_profile.read",
+  "organization.scoring_profile.write",
 ] as const;
 
 export type OrganizationAction = (typeof ORGANIZATION_ACTIONS)[number];

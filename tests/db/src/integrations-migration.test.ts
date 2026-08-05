@@ -26,10 +26,14 @@ describe("Integrations Migration Verification", () => {
     );
   });
 
-  it("orders the integrations migrations at the manifest tail", () => {
+  // Relative ordering, not tail position: later bounded contexts append their
+  // own migrations (200+ is the prospecting product context), and this suite
+  // owns the integrations pair, not the end of the manifest.
+  it("orders 190 immediately after 180", () => {
     const ids = manifest.migrations.map((m) => m.id);
-    expect(ids.indexOf("180_integrations_foundation")).toBe(ids.length - 2);
-    expect(ids.indexOf("190_integrations_delivery_attribution")).toBe(ids.length - 1);
+    const foundation = ids.indexOf("180_integrations_foundation");
+    expect(foundation).toBeGreaterThan(-1);
+    expect(ids[foundation + 1]).toBe("190_integrations_delivery_attribution");
   });
 
   it("manifest checksums match the on-disk up.sql files", () => {
