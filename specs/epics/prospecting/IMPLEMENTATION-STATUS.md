@@ -9,9 +9,9 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 |-------|-------|
 | Epic status | **In progress** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0, SP1, SP2, SP3 |
-| Live on `stage` | SP0, SP1, SP2, SP3 |
-| Live on `prod` | SP0, SP1, SP2, SP3 |
+| Milestones shipped | SP0, SP1, SP2, SP3, SP4 |
+| Live on `stage` | SP0, SP1, SP2, SP3, SP4 |
+| Live on `prod` | SP0, SP1, SP2, SP3, SP4 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -40,7 +40,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 | SP1 | Discovery | **Shipped** | #10 | `stage` + `prod` | adapters (`synthetic`, `web-signals`), `engine/dedupe.ts`, discovery + prospect routes, metering seam, events; edge facade pulled forward from SP5 |
 | SP2 | Scoring | **Shipped** | #11 | `stage` + `prod` | `engine/scoring.ts` (pure, 33 unit tests), scoring profiles, auto-score at discovery, rescore + bulk rescore, score history |
 | SP3 | Insights | **Shipped** | #12 | `stage` + `prod` | model adapter (Claude SDK + deterministic template fallback), `engine/guardrail.ts`, digest cache, entitlement gate before the model call |
-| SP4 | Pipeline | Draft | — | — | |
+| SP4 | Pipeline | **Shipped** | #13 | `stage` + `prod` | lazy stage seeding, board with stuck-in-stage day counts, entries with the one-open-entry constraint, activity timeline |
 | SP5 | Edge + SDK + CLI | Draft | — | — | |
 | SP6 | Console | Draft | — | — | |
 | SP7 | Commercial | Draft | — | — | |
@@ -132,3 +132,21 @@ reason, rather than by silently editing the design.
   24.6 KiB / 6.2 KiB gzipped to 744 KiB / 147 KiB gzipped — well inside the
   Workers limit, but a real jump for a worker that is otherwise database code.
   Recorded so the trade is visible if it ever needs revisiting.
+
+### SP4
+
+- **Stages are seeded lazily, on first read or write**, not at org creation. A
+  tenant that never opens the pipeline carries no rows for it, and the seed is
+  `ON CONFLICT DO NOTHING` so two concurrent first requests converge.
+- **`PUT /pipeline/stages` rejects a board with no `open` stage.** Not in the
+  design, but a board where every stage is terminal has nowhere to put a new
+  prospect — the next `POST /pipeline/entries` would close on arrival.
+- **`replaceStages` keeps a stage that still has an entry on it**, even when
+  the caller omitted it. Deleting it would orphan a card with no way for the
+  user to find it again.
+- **Only `note` activities are writable through the API.** The other kinds are
+  written by the system as a consequence of the thing happening; accepting one
+  from a client would let the timeline claim an event that never occurred.
+- **`daysInStage` is computed on read, not stored.** It is a pure function of
+  `entered_stage_at` and the current clock, so a stored copy could only ever be
+  stale.
