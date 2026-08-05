@@ -9,9 +9,9 @@ distinct from `design.md` (intent) and `implementation-plan.md` (plan).
 |-------|-------|
 | Epic status | **In progress** |
 | Branch | milestone branches → `main` (charter merged in #8) |
-| Milestones shipped | SP0 |
-| Live on `stage` | SP0 |
-| Live on `prod` | SP0 |
+| Milestones shipped | SP0, SP1 |
+| Live on `stage` | SP0, SP1 |
+| Live on `prod` | SP0, SP1 |
 
 The charter, design, and milestone ladder merged in #8. SP0 lands the contract
 module, the three migrations, the persistence layer, the RBAC actions, and the
@@ -37,7 +37,7 @@ Recorded so that "what did the product layer add" stays answerable later.
 | ID | Milestone | Status | PR | Verified on | Notes |
 |----|-----------|--------|----|-------------|-------|
 | SP0 | Contract + data model | **Shipped** | #9 | `stage` + `prod` | contracts module, migrations 200/210/220, `@saas/db/prospecting`, 11 RBAC actions, worker skeleton |
-| SP1 | Discovery | Draft | — | — | |
+| SP1 | Discovery | **Shipped** | #10 | `stage` + `prod` | adapters (`synthetic`, `web-signals`), `engine/dedupe.ts`, discovery + prospect routes, metering seam, events; edge facade pulled forward from SP5 |
 | SP2 | Scoring | Draft | — | — | |
 | SP3 | Insights | Draft | — | — | |
 | SP4 | Pipeline | Draft | — | — | |
@@ -65,3 +65,24 @@ reason, rather than by silently editing the design.
   milestone.
 - **`ERROR_CODES.QUOTA_EXHAUSTED` was added in SP0** rather than SP7. It is a
   contract, and SP0 is the contract milestone; SP3/SP7 consume it.
+
+### SP1
+
+- **The `api-edge` facade was pulled forward from SP5.** The epic's own bar is
+  "implemented locally is not a completion state", and without the facade the
+  worker has no reachable surface on `stage` — SP1 would ship unverifiable.
+  The facade, the `PROSPECTING_WORKER` binding, and the two rate-limit classes
+  land here; SP5 keeps the SDK, the CLI, and full route parity as the routes
+  arrive.
+- **A new service-binding seam on `metering-worker`**
+  (`POST /v1/internal/metering/usage`). The public usage route authorizes an
+  end user against `organization.metering.write`; a bounded context recording
+  its own product meter has no end user to authorize. The seam is gated on the
+  caller allow-list *and* a metric allow-list, so a misconfigured caller
+  cannot write arbitrary meters.
+- **`prospecting.signals.source` is written from the adapter id**, using the
+  column added in SP0.
+- **The billing period is the UTC calendar month.** `design.md` §9 states
+  allowances per month but does not define the window. A rolling 30 days makes
+  "when do my credits reset" a support question; the calendar month is
+  predictable and is what the 402 payload reports as `resetAt`.

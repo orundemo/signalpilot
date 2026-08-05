@@ -57,7 +57,9 @@ export type RouteFamily =
   | "billing"
   | "audit"
   | "notifications"
-  | "integrations";
+  | "integrations"
+  | "prospecting"
+  | "prospecting_expensive";
 
 interface BucketLimits {
   /** Bucket capacity (max tokens). */
@@ -119,6 +121,18 @@ const LIMITS: Record<RouteFamily, FamilyConfig> = {
   integrations: {
     identity: { limit: 60, windowSec: 60 },
     org: { limit: 300, windowSec: 60 },
+  },
+  prospecting: {
+    identity: { limit: 60, windowSec: 60 },
+    org: { limit: 300, windowSec: 60 },
+  },
+  // A discovery run fans out to a batch of fetches and an insight generation
+  // calls a model — both cost real money downstream, so they get a budget an
+  // order of magnitude tighter than a read. A tenant hitting this limit is
+  // running a loop, not using the product.
+  prospecting_expensive: {
+    identity: { limit: 10, windowSec: 60 },
+    org: { limit: 30, windowSec: 60 },
   },
 };
 

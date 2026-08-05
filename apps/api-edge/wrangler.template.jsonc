@@ -71,6 +71,10 @@
           "service": "signalpilot-projects-worker-stage"
         },
         {
+          "binding": "PROSPECTING_WORKER",
+          "service": "signalpilot-prospecting-worker-stage"
+        },
+        {
           "binding": "EVENTS_WORKER",
           "service": "signalpilot-events-worker-stage"
         },
@@ -138,6 +142,10 @@
         {
           "binding": "PROJECTS_WORKER",
           "service": "signalpilot-projects-worker-prod"
+        },
+        {
+          "binding": "PROSPECTING_WORKER",
+          "service": "signalpilot-prospecting-worker-prod"
         },
         {
           "binding": "EVENTS_WORKER",
