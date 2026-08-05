@@ -68,6 +68,12 @@ export function buildNavSections(scope: NavScope, soloMode: boolean = SOLO_MODE)
             { href: `${orgBase}/settings`, label: "Settings", icon: "Settings", subPanel: true },
           ]
         : [
+            // The product surfaces come first: this is what an operator opens
+            // the console to do. Platform administration sits behind Settings.
+            { href: `${orgBase}/discover`, label: "Discover", icon: "Search" },
+            { href: `${orgBase}/prospects`, label: "Prospects", icon: "Target" },
+            { href: `${orgBase}/pipeline`, label: "Pipeline", icon: "KanbanSquare" },
+            { href: `${orgBase}/insights`, label: "Insights", icon: "Sparkles" },
             { href: `${orgBase}/projects`, label: "Projects", icon: "FolderKanban" },
             { href: `${orgBase}/usage`, label: "Usage & quota", icon: "Gauge" },
             // Opens the dedicated settings panel — flagged so the renderer shows a ›.

@@ -79,6 +79,12 @@ describe("buildNavSections under the Solo (M0) profile", () => {
     const org = buildNavSections({ orgSlug: "acme" }, false).find((s) => s.id === "org")!;
     expect(org.label).toBe("Org · acme");
     expect(org.links.map((l) => l.href)).toEqual([
+      // The product surfaces come first (SP6); platform administration
+      // stays behind Settings.
+      "/orgs/acme/discover",
+      "/orgs/acme/prospects",
+      "/orgs/acme/pipeline",
+      "/orgs/acme/insights",
       "/orgs/acme/projects",
       "/orgs/acme/usage",
       "/orgs/acme/settings",
