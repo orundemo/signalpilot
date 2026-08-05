@@ -5,10 +5,31 @@ import { handleIngestBatch } from "./handlers/ingest-batch.js";
 import { handleGetUsageSummary } from "./handlers/get-usage-summary.js";
 import { handleCheckQuota } from "./handlers/check-quota.js";
 import { handleListQuotaViolations } from "./handlers/list-quota-violations.js";
+import { handleInternalRecordUsage } from "./handlers/internal-record-usage.js";
 import { errorResponse, notFound, methodNotAllowed } from "./http.js";
 import { generateRequestId, parseOrgPublicId } from "./ids.js";
 
 const REQUEST_ID_RE = /^[\w-]{1,128}$/;
+
+/**
+ * Service-binding provenance for the private usage-recording seam. Not an
+ * authentication credential: only Workers explicitly bound to metering-worker
+ * over a Cloudflare service binding can present this header, so it cannot be
+ * forged from outside the trust boundary. api-edge never routes
+ * `/v1/internal/*`, so the seam has no public path.
+ *
+ * Add a caller here when a new bounded context gains a service binding to
+ * metering-worker. Avoid wildcards.
+ */
+const INTERNAL_CALLER_HEADER = "x-internal-caller";
+const INTERNAL_CALLER_RE = /^[a-z][a-z0-9-]{0,63}$/;
+const ALLOWED_INTERNAL_CALLERS: ReadonlySet<string> = new Set(["prospecting-worker"]);
+
+function isAllowedInternalCaller(value: string | null): value is string {
+  if (!value) return false;
+  if (!INTERNAL_CALLER_RE.test(value)) return false;
+  return ALLOWED_INTERNAL_CALLERS.has(value);
+}
 
 export interface ActorContext {
   subjectId: string;
@@ -88,6 +109,17 @@ export async function route(request: Request, env: Env): Promise<Response> {
   try {
     if (url.pathname === "/health" && request.method === "GET") {
       return handleHealth(env, requestId);
+    }
+
+    // Private internal route (service-binding only — never edge-routed).
+    // Lets a sibling bounded context record its own product meter without an
+    // end-user actor. Gated on the caller allow-list and a metric allow-list.
+    if (url.pathname === "/v1/internal/metering/usage") {
+      if (request.method !== "POST") return methodNotAllowed(requestId);
+      if (!isAllowedInternalCaller(request.headers.get(INTERNAL_CALLER_HEADER))) {
+        return errorResponse("unauthorized", "Unauthorized", 403, requestId);
+      }
+      return handleInternalRecordUsage(request, env, requestId);
     }
 
     const matched = matchRoute(url.pathname);

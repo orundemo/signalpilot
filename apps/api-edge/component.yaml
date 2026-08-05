@@ -18,6 +18,7 @@ spec:
     - component: cloudflare-hyperdrive
     - component: cloudflare-kv
     - component: projects-worker
+    - component: prospecting-worker
     - component: events-worker
     - component: config-worker
     - component: webhooks-worker
