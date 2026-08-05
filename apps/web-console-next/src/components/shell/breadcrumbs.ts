@@ -16,6 +16,11 @@ export interface Crumb {
 
 /** Page labels for org-scoped leaf segments. */
 const SEGMENT_LABELS: Record<string, string> = {
+  discover: "Discover",
+  prospects: "Prospects",
+  pipeline: "Pipeline",
+  insights: "Insights",
+  "isolation-proof": "Isolation proof",
   projects: "Projects",
   environments: "Environments",
   usage: "Usage & quota",
@@ -44,7 +49,7 @@ const DYNAMIC_CHILD_HREF: Record<string, string> = {
  * Build the breadcrumb trail for an org-scoped pathname.
  *
  * The first crumb is always the org (display name, linking to the org's
- * Projects page — its de-facto home). Subsequent crumbs follow the pathname
+ * Prospects board — the product's home surface). Subsequent crumbs follow the pathname
  * segments after `/orgs/:orgSlug/`, using friendly labels for known segments
  * and the raw slug/id for dynamic ones. The final crumb is the current page
  * and carries no href.
@@ -56,7 +61,7 @@ export function buildBreadcrumbs(args: {
 }): Crumb[] {
   const { orgSlug, orgName, pathname } = args;
   const base = `/orgs/${orgSlug}`;
-  const crumbs: Crumb[] = [{ label: orgName, href: `${base}/projects` }];
+  const crumbs: Crumb[] = [{ label: orgName, href: `${base}/prospects` }];
 
   if (!pathname || !pathname.startsWith(`${base}`)) {
     // Foreign path (shouldn't happen inside OrgScope) — org crumb only.

@@ -114,6 +114,33 @@ export function buildBaseCommands(ctx: CommandContext): CommandDescriptor[] {
   if (orgBase) {
     const settingsBase = `${orgBase}/settings`;
     out.push(
+      navItem("nav.discover", "Discover", `${orgBase}/discover`, "Search", [
+        "discover",
+        "find",
+        "search",
+        "prospecting",
+        "run",
+      ]),
+      navItem("nav.prospects", "Prospects", `${orgBase}/prospects`, "Target", [
+        "prospect",
+        "business",
+        "lead",
+        "score",
+        "board",
+      ]),
+      navItem("nav.pipeline", "Pipeline", `${orgBase}/pipeline`, "KanbanSquare", [
+        "pipeline",
+        "kanban",
+        "deal",
+        "stage",
+      ]),
+      navItem("nav.insights", "Insights", `${orgBase}/insights`, "Sparkles", [
+        "insight",
+        "draft",
+        "outreach",
+        "email",
+        "ai",
+      ]),
       navItem("nav.projects", "Projects", `${orgBase}/projects`, "FolderKanban", ["project"]),
       navItem("nav.usage", "Usage & quota", `${orgBase}/usage`, "Gauge", [
         "usage",
